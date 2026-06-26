@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Cinzel:wght@700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
-    /* ─── CSS (unchanged – keep your existing styles) ─── */
+    /* ─── CSS (unchanged from previous) ─── */
     :root {
       --navy:#0c1e3e; --navy2:#162d54; --gold:#c9a227; --gold2:#e6bb44;
       --bg:#f4f3f0; --surface:#ffffff; --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
@@ -1020,9 +1020,10 @@ async function createUser(){
   btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
 
   try {
-    // ✅ Generate a valid UUID for the id field
+    // ✅ Generate a valid UUID (v4 compatible)
     const userId = crypto.randomUUID ? crypto.randomUUID() : 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function(c) {
-      const r = Math.random() * 16 | 0, v = c === 'x' ? r : (r & 0x3 | 0x8);
+      const r = Math.random() * 16 | 0;
+      const v = c === 'x' ? r : (r & 0x3 | 0x8);
       return v.toString(16);
     });
 
