@@ -980,22 +980,26 @@ async function fetchBooks(){
   if(error) throw new Error('books: '+error.message);
   BOOKS=data||[];
 }
-async function fetchStudents(){
-  const{data,error}=await sb.from('students').select('*');
-  if(error) throw new Error('students: '+error.message);
-  STUDENTS=data||[];
+async function fetchStudents() {
+    const { data, error } = await sb.from('students').select('*');
+    if (error) throw new Error('students: ' + error.message);
+    STUDENTS = data || [];
 }
-async function fetchIssues(){
-  const{data,error}=await sb.from('book_issues').select('*').order('created_at',{ascending:false}).limit(2000);
-  if(error) throw new Error('book_issues: '+error.message);
-  ISSUES=data||[];
+
+async function fetchIssues() {
+    const { data, error } = await sb.from('book_issues').select('*').order('issue_date', { ascending: false }).limit(2000);
+    if (error) throw new Error('book_issues: ' + error.message);
+    ISSUES = data || [];
 }
-async function fetchUsers(){
-  try {
-    const{data,error}=await sb.from('app_users').select('*').order('created_at',{ascending:false});
-    if(error) throw error;
-    USERS_CACHE=data||[];
-  } catch(e){ USERS_CACHE=[]; }
+
+async function fetchUsers() {
+    try {
+        const { data, error } = await sb.from('app_users').select('*').order('created_at', { ascending: false });
+        if (error) throw error;
+        USERS_CACHE = data || [];
+    } catch(e) {
+        USERS_CACHE = [];
+    }
 }
 async function fetchActivityLogs(){
   try {
