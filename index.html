@@ -10,16 +10,13 @@
     <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
     <style>
         /* ═══════════════════════════════════════════════════
-           PROFESSIONAL DESIGN TOKENS
+           PROFESSIONAL DESIGN TOKENS (unchanged)
         ═══════════════════════════════════════════════════ */
         :root {
-            /* Dynamic Theme colors */
             --custom-word: #1c1917;
             --custom-btn: #c2410c;
             --custom-sidebar: #292524;
             --custom-bg: #fafaf9;
-
-            /* Core colors derived from custom ones */
             --ink: var(--custom-word, #1c1917);
             --ink-2: #292524;
             --ink-muted: #78716c;
@@ -60,8 +57,6 @@
             --topbar-h: 60px;
             --t: .18s ease;
         }
-
-        /* Dark mode fallbacks */
         [data-theme="dark"] {
             --ink: var(--custom-word, #fafaf9);
             --ink-2: #1c1917;
@@ -83,13 +78,12 @@
             --orange-light: #1c1008;
             --border: #2e2926;
             --border-2: #3d3632;
-            --shadow-xs: 0 1px 2px rgba(0, 0, 0, .3);
-            --shadow-sm: 0 1px 6px rgba(0, 0, 0, .4);
-            --shadow-md: 0 4px 16px rgba(0, 0, 0, .5);
-            --shadow-lg: 0 12px 40px rgba(0, 0, 0, .6);
-            --shadow-xl: 0 24px 64px rgba(0, 0, 0, .7);
+            --shadow-xs: 0 1px 2px rgba(0,0,0,.3);
+            --shadow-sm: 0 1px 6px rgba(0,0,0,.4);
+            --shadow-md: 0 4px 16px rgba(0,0,0,.5);
+            --shadow-lg: 0 12px 40px rgba(0,0,0,.6);
+            --shadow-xl: 0 24px 64px rgba(0,0,0,.7);
         }
-
         * {
             box-sizing: border-box;
             margin: 0;
@@ -127,7 +121,6 @@
             border-collapse: collapse;
             width: 100%;
         }
-
         /* ─── AUTH ─── */
         #authScreen {
             position: fixed;
@@ -160,7 +153,7 @@
             justify-content: center;
             font-size: 26px;
             margin-bottom: 14px;
-            box-shadow: 0 8px 24px rgba(194, 65, 12, .3);
+            box-shadow: 0 8px 24px rgba(194,65,12,.3);
             transition: background var(--t);
         }
         .auth-logo h1 {
@@ -223,7 +216,7 @@
         }
         .auth-btn:hover {
             background: var(--rust-2);
-            box-shadow: 0 4px 12px rgba(194, 65, 12, .35);
+            box-shadow: 0 4px 12px rgba(194,65,12,.35);
         }
         .auth-btn:disabled {
             opacity: .6;
@@ -232,7 +225,7 @@
         .auth-error {
             background: var(--crimson-light);
             color: var(--crimson);
-            border: 1px solid rgba(190, 18, 60, .2);
+            border: 1px solid rgba(190,18,60,.2);
             border-radius: var(--r-sm);
             padding: 10px 14px;
             font-size: .83rem;
@@ -248,8 +241,7 @@
             color: var(--ink-faint);
             line-height: 1.6;
         }
-
-        /* ─── LAYOUT ─── */
+        /* ─── LAYOUT (unchanged) ─── */
         #appShell {
             display: flex;
             width: 100%;
@@ -277,7 +269,7 @@
         }
         .sidebar-logo {
             padding: 22px 18px 18px;
-            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            border-bottom: 1px solid rgba(255,255,255,.08);
             display: flex;
             align-items: center;
             gap: 11px;
@@ -292,7 +284,7 @@
             justify-content: center;
             font-size: 17px;
             flex-shrink: 0;
-            box-shadow: 0 4px 12px rgba(194, 65, 12, .4);
+            box-shadow: 0 4px 12px rgba(194,65,12,.4);
             transition: background var(--t);
         }
         .logo-name {
@@ -305,7 +297,7 @@
             display: block;
             font-family: 'DM Sans', sans-serif;
             font-size: .58rem;
-            color: rgba(255, 255, 255, .4);
+            color: rgba(255,255,255,.4);
             font-weight: 400;
             letter-spacing: .1em;
             text-transform: uppercase;
@@ -313,7 +305,7 @@
         }
         .sidebar-user {
             padding: 12px 16px;
-            border-bottom: 1px solid rgba(255, 255, 255, .08);
+            border-bottom: 1px solid rgba(255,255,255,.08);
             display: flex;
             align-items: center;
             gap: 9px;
@@ -346,12 +338,12 @@
         }
         .user-role {
             font-size: .68rem;
-            color: rgba(255, 255, 255, .4);
+            color: rgba(255,255,255,.4);
             text-transform: uppercase;
             letter-spacing: .06em;
         }
         .user-logout {
-            color: rgba(255, 255, 255, .35);
+            color: rgba(255,255,255,.35);
             font-size: .83rem;
             cursor: pointer;
             padding: 4px;
@@ -369,7 +361,7 @@
             font-size: .6rem;
             letter-spacing: .12em;
             text-transform: uppercase;
-            color: rgba(255, 255, 255, .28);
+            color: rgba(255,255,255,.28);
             padding: 12px 18px 4px;
             font-weight: 600;
         }
@@ -378,7 +370,7 @@
             align-items: center;
             gap: 9px;
             padding: 9px 18px;
-            color: rgba(255, 255, 255, .62);
+            color: rgba(255,255,255,.62);
             cursor: pointer;
             transition: all var(--t);
             position: relative;
@@ -388,11 +380,11 @@
         }
         .nav-item:hover {
             color: #fff;
-            background: rgba(255, 255, 255, .06);
+            background: rgba(255,255,255,.06);
         }
         .nav-item.active {
             color: #fff;
-            background: rgba(194, 65, 12, .2);
+            background: rgba(194,65,12,.2);
         }
         .nav-item.active::before {
             content: '';
@@ -424,22 +416,22 @@
         }
         .sidebar-footer {
             padding: 10px 14px;
-            border-top: 1px solid rgba(255, 255, 255, .08);
+            border-top: 1px solid rgba(255,255,255,.08);
         }
         .theme-btn {
             display: flex;
             align-items: center;
             gap: 7px;
-            background: rgba(255, 255, 255, .07);
+            background: rgba(255,255,255,.07);
             border-radius: var(--r-sm);
             padding: 7px 12px;
-            color: rgba(255, 255, 255, .6);
+            color: rgba(255,255,255,.6);
             font-size: .8rem;
             width: 100%;
             transition: all var(--t);
         }
         .theme-btn:hover {
-            background: rgba(255, 255, 255, .12);
+            background: rgba(255,255,255,.12);
             color: #fff;
         }
         .main {
@@ -510,7 +502,6 @@
             padding: 22px 26px;
             flex: 1;
         }
-
         /* ─── SECTIONS ─── */
         .section {
             display: none;
@@ -520,16 +511,9 @@
             display: block;
         }
         @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(5px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            from { opacity:0; transform:translateY(5px); }
+            to { opacity:1; transform:translateY(0); }
         }
-
         /* ─── STATS ─── */
         .stats-row {
             display: grid;
@@ -560,24 +544,12 @@
             border-radius: 0 0 0 72px;
             opacity: .07;
         }
-        .s-rust::after {
-            background: var(--rust);
-        }
-        .s-teal::after {
-            background: var(--teal);
-        }
-        .s-amber::after {
-            background: var(--amber);
-        }
-        .s-emerald::after {
-            background: var(--emerald);
-        }
-        .s-violet::after {
-            background: var(--violet);
-        }
-        .s-crimson::after {
-            background: var(--crimson);
-        }
+        .s-rust::after { background: var(--rust); }
+        .s-teal::after { background: var(--teal); }
+        .s-amber::after { background: var(--amber); }
+        .s-emerald::after { background: var(--emerald); }
+        .s-violet::after { background: var(--violet); }
+        .s-crimson::after { background: var(--crimson); }
         .stat-icon {
             width: 38px;
             height: 38px;
@@ -588,24 +560,12 @@
             font-size: 1.1rem;
             margin-bottom: 12px;
         }
-        .s-rust .stat-icon {
-            background: var(--rust-light);
-        }
-        .s-teal .stat-icon {
-            background: var(--teal-light);
-        }
-        .s-amber .stat-icon {
-            background: var(--amber-light);
-        }
-        .s-emerald .stat-icon {
-            background: var(--emerald-light);
-        }
-        .s-violet .stat-icon {
-            background: var(--violet-light);
-        }
-        .s-crimson .stat-icon {
-            background: var(--crimson-light);
-        }
+        .s-rust .stat-icon { background: var(--rust-light); }
+        .s-teal .stat-icon { background: var(--teal-light); }
+        .s-amber .stat-icon { background: var(--amber-light); }
+        .s-emerald .stat-icon { background: var(--emerald-light); }
+        .s-violet .stat-icon { background: var(--violet-light); }
+        .s-crimson .stat-icon { background: var(--crimson-light); }
         .stat-val {
             font-family: 'Playfair Display', serif;
             font-size: 1.9rem;
@@ -623,7 +583,6 @@
         .stat-card.clickable:hover {
             border-color: var(--rust);
         }
-
         /* ─── CARDS ─── */
         .card {
             background: var(--surface-2);
@@ -668,21 +627,11 @@
             flex-shrink: 0;
             margin-top: 5px;
         }
-        .a-issue {
-            background: var(--rust);
-        }
-        .a-return {
-            background: var(--teal);
-        }
-        .a-add {
-            background: var(--emerald);
-        }
-        .a-delete {
-            background: var(--amber);
-        }
-        .a-lost {
-            background: var(--crimson);
-        }
+        .a-issue { background: var(--rust); }
+        .a-return { background: var(--teal); }
+        .a-add { background: var(--emerald); }
+        .a-delete { background: var(--amber); }
+        .a-lost { background: var(--crimson); }
         .a-text {
             font-size: .8rem;
             color: var(--ink-muted);
@@ -697,11 +646,10 @@
             margin-top: 2px;
             display: block;
         }
-
-        /* ─── CONDITION CALLOUT BOX ─── */
+        /* ─── CONDITION CALLOUT ─── */
         .condition-box {
             background: var(--amber-light);
-            border: 1.5px solid rgba(180, 83, 9, .18);
+            border: 1.5px solid rgba(180,83,9,.18);
             border-radius: var(--r-sm);
             padding: 11px 14px;
             margin-top: 4px;
@@ -713,7 +661,6 @@
         .condition-box.visible {
             display: block;
         }
-
         /* ─── SECTION HEADER ─── */
         .sec-header {
             display: flex;
@@ -733,7 +680,6 @@
             gap: 7px;
             flex-wrap: wrap;
         }
-
         /* ─── BUTTONS ─── */
         .btn {
             display: inline-flex;
@@ -754,7 +700,7 @@
         }
         .btn-primary:hover {
             background: var(--rust-2);
-            box-shadow: 0 4px 12px rgba(194, 65, 12, .35);
+            box-shadow: 0 4px 12px rgba(194,65,12,.35);
         }
         .btn-secondary {
             background: var(--surface-3);
@@ -768,23 +714,17 @@
             background: var(--teal);
             color: #fff;
         }
-        .btn-teal:hover {
-            opacity: .88;
-        }
+        .btn-teal:hover { opacity: .88; }
         .btn-danger {
             background: var(--crimson);
             color: #fff;
         }
-        .btn-danger:hover {
-            opacity: .88;
-        }
+        .btn-danger:hover { opacity: .88; }
         .btn-emerald {
             background: var(--emerald);
             color: #fff;
         }
-        .btn-emerald:hover {
-            opacity: .88;
-        }
+        .btn-emerald:hover { opacity: .88; }
         .btn-sm {
             padding: 5px 10px;
             font-size: .76rem;
@@ -810,7 +750,6 @@
             background: var(--crimson);
             color: #fff;
         }
-
         /* ─── SEARCH ─── */
         .search-wrap {
             position: relative;
@@ -831,7 +770,7 @@
         .search-wrap input:focus {
             outline: none;
             border-color: var(--rust);
-            box-shadow: 0 0 0 3px rgba(194, 65, 12, .1);
+            box-shadow: 0 0 0 3px rgba(194,65,12,.1);
         }
         .search-icon {
             position: absolute;
@@ -855,7 +794,6 @@
             outline: none;
             border-color: var(--rust);
         }
-
         /* ─── TABLES ─── */
         .tbl-wrap {
             background: var(--surface-2);
@@ -914,42 +852,15 @@
             font-weight: 600;
             white-space: nowrap;
         }
-        .badge-green {
-            background: var(--emerald-light);
-            color: var(--emerald);
-        }
-        .badge-red {
-            background: var(--crimson-light);
-            color: var(--crimson);
-        }
-        .badge-amber {
-            background: var(--amber-light);
-            color: var(--amber);
-        }
-        .badge-teal {
-            background: var(--teal-light);
-            color: var(--teal);
-        }
-        .badge-gray {
-            background: var(--surface-3);
-            color: var(--ink-muted);
-        }
-        .badge-rust {
-            background: var(--rust-light);
-            color: var(--rust);
-        }
-        .badge-violet {
-            background: var(--violet-light);
-            color: var(--violet);
-        }
-        .badge-orange {
-            background: var(--orange-light);
-            color: var(--orange);
-        }
-        .badge-crimson {
-            background: var(--crimson-light);
-            color: var(--crimson);
-        }
+        .badge-green { background: var(--emerald-light); color: var(--emerald); }
+        .badge-red { background: var(--crimson-light); color: var(--crimson); }
+        .badge-amber { background: var(--amber-light); color: var(--amber); }
+        .badge-teal { background: var(--teal-light); color: var(--teal); }
+        .badge-gray { background: var(--surface-3); color: var(--ink-muted); }
+        .badge-rust { background: var(--rust-light); color: var(--rust); }
+        .badge-violet { background: var(--violet-light); color: var(--violet); }
+        .badge-orange { background: var(--orange-light); color: var(--orange); }
+        .badge-crimson { background: var(--crimson-light); color: var(--crimson); }
         .t-actions {
             display: flex;
             gap: 4px;
@@ -995,19 +906,6 @@
             background: var(--emerald);
             color: #fff;
         }
-        .btn-lost {
-            background: var(--crimson-light);
-            color: var(--crimson);
-            padding: 3px 8px;
-            border-radius: 4px;
-            font-size: .73rem;
-            font-weight: 600;
-            transition: all var(--t);
-        }
-        .btn-lost:hover {
-            background: var(--crimson);
-            color: #fff;
-        }
         .pagination {
             display: flex;
             align-items: center;
@@ -1050,12 +948,11 @@
             opacity: .4;
             cursor: not-allowed;
         }
-
         /* ─── MODALS ─── */
         .modal-overlay {
             position: fixed;
             inset: 0;
-            background: rgba(28, 25, 23, .65);
+            background: rgba(28,25,23,.65);
             backdrop-filter: blur(4px);
             z-index: 200;
             display: flex;
@@ -1129,7 +1026,6 @@
             bottom: 0;
             background: var(--surface);
         }
-
         /* ─── FORMS ─── */
         .form-grid {
             display: grid;
@@ -1164,7 +1060,7 @@
         .fi:focus {
             outline: none;
             border-color: var(--rust);
-            box-shadow: 0 0 0 3px rgba(194, 65, 12, .1);
+            box-shadow: 0 0 0 3px rgba(194,65,12,.1);
         }
         .fi::placeholder {
             color: var(--ink-faint);
@@ -1195,7 +1091,6 @@
         .fg.has-error .ferr {
             display: block;
         }
-
         /* ─── TOAST ─── */
         #toastRoot {
             position: fixed;
@@ -1239,30 +1134,18 @@
             cursor: pointer;
         }
         @keyframes toastIn {
-            from {
-                opacity: 0;
-                transform: translateX(14px);
-            }
-            to {
-                opacity: 1;
-                transform: translateX(0);
-            }
+            from { opacity:0; transform:translateX(14px); }
+            to { opacity:1; transform:translateX(0); }
         }
         @keyframes toastOut {
-            from {
-                opacity: 1;
-            }
-            to {
-                opacity: 0;
-                transform: translateX(14px);
-            }
+            from { opacity:1; }
+            to { opacity:0; transform:translateX(14px); }
         }
-
         /* ─── CONFIRM ─── */
         #confirmOverlay {
             position: fixed;
             inset: 0;
-            background: rgba(28, 25, 23, .65);
+            background: rgba(28,25,23,.65);
             backdrop-filter: blur(4px);
             z-index: 400;
             display: flex;
@@ -1312,7 +1195,6 @@
             gap: 7px;
             justify-content: center;
         }
-
         /* ─── LOADING ─── */
         .spinner {
             width: 17px;
@@ -1324,9 +1206,7 @@
             display: inline-block;
         }
         @keyframes spin {
-            to {
-                transform: rotate(360deg);
-            }
+            to { transform:rotate(360deg); }
         }
         .empty-state {
             text-align: center;
@@ -1349,7 +1229,6 @@
             max-width: 260px;
             margin: 0 auto;
         }
-
         /* ─── REPORTS ─── */
         .report-tabs {
             display: flex;
@@ -1377,7 +1256,6 @@
         .rpt-tab:hover:not(.active) {
             color: var(--ink);
         }
-
         /* ─── SETTINGS ─── */
         .settings-grid {
             display: grid;
@@ -1417,7 +1295,6 @@
         .info-row .val {
             font-weight: 700;
         }
-
         /* ─── THEME PAINT CARD ─── */
         .color-swatch {
             display: flex;
@@ -1471,7 +1348,6 @@
             color: var(--ink);
             border: 1px solid var(--border);
         }
-
         /* ─── CONNECTION STATUS ─── */
         .conn-banner {
             display: flex;
@@ -1486,26 +1362,24 @@
         .conn-banner.ok {
             background: var(--emerald-light);
             color: var(--emerald);
-            border: 1px solid rgba(22, 101, 52, .2);
+            border: 1px solid rgba(22,101,52,.2);
         }
         .conn-banner.err {
             background: var(--crimson-light);
             color: var(--crimson);
-            border: 1px solid rgba(190, 18, 60, .2);
+            border: 1px solid rgba(190,18,60,.2);
         }
-
         /* ─── SIDEBAR MOBILE ─── */
         .sidebar-backdrop {
             display: none;
             position: fixed;
             inset: 0;
-            background: rgba(28, 25, 23, .5);
+            background: rgba(28,25,23,.5);
             z-index: 99;
         }
         .sidebar-backdrop.open {
             display: block;
         }
-
         /* ─── RESPONSIVE ─── */
         @media (max-width: 1200px) {
             .stats-row {
@@ -1568,11 +1442,7 @@
             border-radius: 3px;
         }
         @media print {
-            .sidebar,
-            .topbar,
-            .sec-actions,
-            .t-actions,
-            .pagination {
+            .sidebar, .topbar, .sec-actions, .t-actions, .pagination {
                 display: none !important;
             }
             .main {
@@ -1598,8 +1468,6 @@
             letter-spacing: .04em;
             transition: color var(--t);
         }
-
-        /* lost books fee badge */
         .fee-badge {
             font-weight: 700;
             color: var(--crimson);
@@ -1648,7 +1516,7 @@
                         <span class="spinner" id="loginSpinner" style="display:none"></span>
                     </button>
                 </div>
-                <div class="auth-hint">Sign in using your Supabase credentials.<br>Contact admin if you don't have an account.</div>
+                <div class="auth-hint">Sign in using your credentials from the app_users table.<br>Contact admin if you don't have an account.</div>
             </div>
         </div>
     </div>
@@ -1906,8 +1774,6 @@
                 <section class="section" id="section-settings">
                     <div class="sec-header"><h2>⚙️ Settings</h2></div>
                     <div class="settings-grid">
-                        
-                        <!-- THEME CUSTOMIZATION CARD (PROFESSIONAL 4-PICKER LAYOUT) -->
                         <div class="settings-card">
                             <div class="sc-head">🎨 Theme Customization</div>
                             <div class="sc-body">
@@ -1951,8 +1817,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- CHANGE PASSWORD CARD -->
                         <div class="settings-card">
                             <div class="sc-head">🔑 Change Password</div>
                             <div class="sc-body">
@@ -1964,8 +1828,6 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- System Stats -->
                         <div class="settings-card">
                             <div class="sc-head">📈 System Stats</div>
                             <div class="sc-body">
@@ -1980,8 +1842,6 @@
                                 <div class="info-row"><label>Supabase</label><span class="val" id="sysConn">—</span></div>
                             </div>
                         </div>
-                        
-                        <!-- Loan Period -->
                         <div class="settings-card">
                             <div class="sc-head">📅 Loan Period</div>
                             <div class="sc-body">
@@ -1992,8 +1852,6 @@
                                 <button class="btn btn-primary" id="btn-save-loan" onclick="Settings.saveLoan()">💾 Save</button>
                             </div>
                         </div>
-                        
-                        <!-- Connection -->
                         <div class="settings-card">
                             <div class="sc-head">🔌 Connection</div>
                             <div class="sc-body">
@@ -2002,8 +1860,6 @@
                                 <button class="btn btn-secondary btn-sm" style="margin-top:10px" onclick="DB.testConn()">🔍 Test Connection</button>
                             </div>
                         </div>
-
-                        <!-- Data Management -->
                         <div class="settings-card" style="grid-column:1/-1">
                             <div class="sc-head">🗄️ Data Management</div>
                             <div class="sc-body" style="display:flex;gap:20px;flex-wrap:wrap;align-items:flex-start">
@@ -2033,7 +1889,6 @@
                                 </div>
                             </div>
                         </div>
-
                     </div>
                 </section>
 
@@ -2252,7 +2107,7 @@
 
     <script>
         /* ═══════════════════════════════════════════════════
-           SAFE SUPABASE CONFIG (No 'const' collisions)
+           SAFE SUPABASE CONFIG (unchanged)
         ═══════════════════════════════════════════════════ */
         if (typeof SUPABASE_URL === 'undefined') var SUPABASE_URL = 'https://uvispwigefzhjvkqcxkm.supabase.co';
         if (typeof SUPABASE_ANON === 'undefined') var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA';
@@ -2264,76 +2119,18 @@
             try {
                 _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
                 console.log('✅ Supabase client initialized');
-                // Check for existing session on load
-                _sb.auth.getSession().then(({ data: { session } }) => {
-                    if (session && session.user) {
-                        // Session exists, verify the user in app_users
-                        verifyAndSetUser(session.user);
-                    }
-                }).catch(e => console.warn('Session check error:', e));
+                // 🔁 REMOVED: session check – we no longer use Supabase Auth
             } catch (e) {
                 console.error('Supabase init failed:', e);
                 Toast.show('Supabase connection failed: ' + e.message, 'error');
             }
         }
 
-        async function verifyAndSetUser(authUser) {
-            try {
-                // Query app_users for this user
-                const { data, error } = await _sb
-                    .from('app_users')
-                    .select('*')
-                    .eq('id', authUser.id)
-                    .maybeSingle();
-
-                if (error) throw error;
-
-                if (!data) {
-                    // No app_users row — create one with default role 'librarian'
-                    const { data: newUser, error: insertErr } = await _sb
-                        .from('app_users')
-                        .insert({
-                            id: authUser.id,
-                            email: authUser.email,
-                            full_name: authUser.user_metadata?.full_name || authUser.email,
-                            role: 'librarian',
-                            is_active: true
-                        })
-                        .select()
-                        .single();
-                    if (insertErr) throw insertErr;
-                    currentUser = newUser;
-                } else if (!data.is_active) {
-                    // User is inactive
-                    Toast.show('Your account is deactivated. Contact admin.', 'error');
-                    await _sb.auth.signOut();
-                    return;
-                } else {
-                    currentUser = data;
-                }
-
-                // User is valid — show app
-                showApp();
-                // Update sidebar user info & Role UI (100ms delay allows DOM to fully draw first)
-                setTimeout(() => updateSidebarUser(), 100);
-                // Load data
-                loadAllData();
-
-            } catch (e) {
-                console.error('User verification error:', e);
-                Toast.show('Authentication error: ' + e.message, 'error');
-                // If verification fails, sign out
-                await _sb.auth.signOut();
-                currentUser = null;
-                document.getElementById('authScreen').classList.remove('hidden');
-                document.getElementById('appShell').classList.add('hidden');
-            }
-        }
+        // 🔁 REMOVED: verifyAndSetUser – not needed anymore
 
         function showApp() {
             document.getElementById('authScreen').classList.add('hidden');
             document.getElementById('appShell').classList.remove('hidden');
-            // Navigate to dashboard
             Nav.go('dashboard');
             DB.testConn();
         }
@@ -2346,22 +2143,16 @@
             document.getElementById('sidebarUserRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
             document.getElementById('sidebarAvatar').textContent = name.charAt(0).toUpperCase();
 
-            // --- ROLE-BASED UI RESTRICTIONS ---
             const isAdmin = role === 'admin';
             const isLibrarian = role === 'librarian' || isAdmin;
             const isViewer = role === 'viewer';
 
-            // Show/Hide Sidebar Nav Items
             document.getElementById('nav-settings').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('nav-bulkimport').style.display = isLibrarian ? 'flex' : 'none';
-
-            // Show/Hide Top "Add" Buttons
             document.getElementById('btn-add-book').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-add-student').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-issue-book').style.display = isLibrarian ? 'inline-flex' : 'none';
-
-            // Show/Hide Settings/Reset Buttons
-            document.getElementById('btn-change-pw').style.display = isAdmin ? 'inline-flex' : 'none';
+            // optional for change password
             document.getElementById('btn-save-loan').style.display = isAdmin ? 'inline-flex' : 'none';
             document.getElementById('btn-backup').style.display = isAdmin ? 'inline-flex' : 'none';
             document.getElementById('btn-restore').style.display = isAdmin ? 'inline-flex' : 'none';
@@ -2378,7 +2169,7 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           PERMISSION / ROLE HELPERS
+           PERMISSION / ROLE HELPERS (unchanged)
         ═══════════════════════════════════════════════════ */
         function hasRole(allowedRoles) {
             if (!currentUser) return false;
@@ -2398,7 +2189,7 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           CONDITION HELPERS
+           CONDITION HELPERS (unchanged)
         ═══════════════════════════════════════════════════ */
         const CONDITION_MAP = {
             good: { label: '✅ Good', cls: 'badge-green' },
@@ -2418,8 +2209,7 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           LOST-BOOK FEE CALCULATION
-           Fee = (pages × 50) + 1000 FRW
+           LOST-BOOK FEE CALCULATION (unchanged)
         ═══════════════════════════════════════════════════ */
         const LOST_FEE_PER_PAGE = 50;
         const LOST_FEE_COVER = 1000;
@@ -2434,7 +2224,7 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           DATABASE LAYER
+           DATABASE LAYER (unchanged)
         ═══════════════════════════════════════════════════ */
         const DB = {
             async testConn() {
@@ -2507,8 +2297,7 @@
             },
 
             async updateStudent(student_id, updates) {
-                const { data, error } = await _sb.from('students').update(updates).eq('student_id', student_id).select()
-                    .single();
+                const { data, error } = await _sb.from('students').update(updates).eq('student_id', student_id).select().single();
                 if (error) throw error;
                 return data;
             },
@@ -2520,12 +2309,10 @@
 
             async getIssues(filters = {}) {
                 let q = _sb.from('book_issues').select('*');
-
                 const today = U.today();
                 if (filters.status === 'active') q = q.eq('returned', false).eq('lost', false);
                 else if (filters.status === 'returned') q = q.eq('returned', true);
-                else if (filters.status === 'overdue') q = q.eq('returned', false).eq('lost', false).lt('return_date',
-                    today);
+                else if (filters.status === 'overdue') q = q.eq('returned', false).eq('lost', false).lt('return_date', today);
                 else if (filters.status === 'damaged') q = q.neq('book_condition', 'good');
                 else if (filters.status === 'lost') q = q.eq('lost', true);
 
@@ -2580,13 +2367,11 @@
             async markLost(issue_id, lost_fee, note) {
                 const updates = { lost: true, lost_date: U.today(), lost_fee };
                 if (note) {
-                    const { data: existing } = await _sb.from('book_issues').select('condition_notes').eq('issue_id',
-                        issue_id).single();
+                    const { data: existing } = await _sb.from('book_issues').select('condition_notes').eq('issue_id', issue_id).single();
                     const prevNotes = existing?.condition_notes || '';
                     updates.condition_notes = (prevNotes ? prevNotes + ' | ' : '') + `LOST (fee ${fmtFRW(lost_fee)}): ${note}`;
                 }
-                const { data, error } = await _sb.from('book_issues').update(updates).eq('issue_id', issue_id).select()
-                    .single();
+                const { data, error } = await _sb.from('book_issues').update(updates).eq('issue_id', issue_id).select().single();
                 if (error) throw error;
                 return data;
             },
@@ -2631,26 +2416,21 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           UTILITIES
+           UTILITIES (unchanged)
         ═══════════════════════════════════════════════════ */
         const U = {
             today: () => new Date().toISOString().split('T')[0],
-            addDays(d, n) { const x = new Date(d);
-                x.setDate(x.getDate() + n); return x.toISOString().split('T')[0]; },
+            addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().split('T')[0]; },
             daysDiff(d) {
                 if (!d) return -999;
                 const now = new Date();
-                now.setHours(0, 0, 0, 0);
+                now.setHours(0,0,0,0);
                 return Math.floor((now - new Date(d)) / 86400000);
             },
-            fmt(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric',
-                    year: 'numeric' }); },
-            esc(s) { return String(s || '').replace(/[<>&"]/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;' } [
-                    c
-                ])); },
+            fmt(d) { if (!d) return '—'; return new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }); },
+            esc(s) { return String(s || '').replace(/[<>&"]/g, c => ({ '<':'&lt;', '>':'&gt;', '&':'&amp;', '"':'&quot;' }[c])); },
             paginate(arr, page, per = 20) {
-                return { data: arr.slice((page - 1) * per, (page - 1) * per + per), pages: Math.ceil(arr.length / per) || 1,
-                    total: arr.length };
+                return { data: arr.slice((page-1)*per, (page-1)*per+per), pages: Math.ceil(arr.length/per) || 1, total: arr.length };
             },
             renderPager(cid, cur, tot, fn) {
                 const el = document.getElementById(cid);
@@ -2659,9 +2439,8 @@
                 let h = `<span>Page ${cur} of ${tot}</span><div class="pg-btns">`;
                 h += `<button class="pg-btn" onclick="${fn}(${cur-1})" ${cur===1?'disabled':''}>‹</button>`;
                 for (let i = 1; i <= tot; i++) {
-                    if (i === 1 || i === tot || (i >= cur - 1 && i <= cur + 1)) h +=
-                        `<button class="pg-btn ${i===cur?'active':''}" onclick="${fn}(${i})">${i}</button>`;
-                    else if (i === cur - 2 || i === cur + 2) h += `<span class="pg-btn" style="cursor:default;border:none">…</span>`;
+                    if (i === 1 || i === tot || (i >= cur-1 && i <= cur+1)) h += `<button class="pg-btn ${i===cur?'active':''}" onclick="${fn}(${i})">${i}</button>`;
+                    else if (i === cur-2 || i === cur+2) h += `<span class="pg-btn" style="cursor:default;border:none">…</span>`;
                 }
                 h += `<button class="pg-btn" onclick="${fn}(${cur+1})" ${cur===tot?'disabled':''}>›</button></div>`;
                 el.innerHTML = h;
@@ -2669,18 +2448,16 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           TOAST & CONFIRM
+           TOAST & CONFIRM (unchanged)
         ═══════════════════════════════════════════════════ */
         const Toast = {
             show(msg, type = 'success') {
                 const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
                 const el = document.createElement('div');
                 el.className = `toast ${type}`;
-                el.innerHTML =
-                    `<span>${icons[type]||'ℹ️'}</span><span class="toast-text">${U.esc(msg)}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
+                el.innerHTML = `<span>${icons[type]||'ℹ️'}</span><span class="toast-text">${U.esc(msg)}</span><span class="toast-close" onclick="this.parentElement.remove()">✕</span>`;
                 document.getElementById('toastRoot').appendChild(el);
-                setTimeout(() => { el.style.animation = 'toastOut .22s ease forwards';
-                    setTimeout(() => el.remove(), 220); }, 3500);
+                setTimeout(() => { el.style.animation = 'toastOut .22s ease forwards'; setTimeout(() => el.remove(), 220); }, 3500);
             }
         };
 
@@ -2696,18 +2473,15 @@
                 this._cb = cb;
                 document.getElementById('confirmOverlay').classList.add('open');
             },
-            ok() { if (this._cb) this._cb();
-                this.cancel(); },
-            cancel() { document.getElementById('confirmOverlay').classList.remove('open');
-                this._cb = null; }
+            ok() { if (this._cb) this._cb(); this.cancel(); },
+            cancel() { document.getElementById('confirmOverlay').classList.remove('open'); this._cb = null; }
         };
         document.getElementById('confirmOkBtn').onclick = () => Confirm.ok();
         document.getElementById('confirmCancelBtn').onclick = () => Confirm.cancel();
-        document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) Confirm
-                .cancel(); });
+        document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) Confirm.cancel(); });
 
         /* ═══════════════════════════════════════════════════
-           AUTH
+           AUTH (UPDATED – app_users only)
         ═══════════════════════════════════════════════════ */
         const Auth = {
             async login() {
@@ -2730,33 +2504,54 @@
                 spinner.style.display = 'inline-block';
 
                 try {
-                    const { data, error } = await _sb.auth.signInWithPassword({ email, password });
-                    if (error) throw error;
+                    // 🔁 STEP 1: Look up user in app_users by email
+                    const { data: user, error } = await _sb
+                        .from('app_users')
+                        .select('*')
+                        .eq('email', email)
+                        .maybeSingle();
 
-                    // On success, verify user in app_users
-                    await verifyAndSetUser(data.user);
+                    if (error) throw error;
+                    if (!user) throw new Error('User not found.');
+
+                    // 🔁 STEP 2: Check password (plaintext comparison)
+                    // ⚠️ For production, use bcrypt.compare() instead
+                    if (user.password !== password) {
+                        throw new Error('Invalid password.');
+                    }
+
+                    // 🔁 STEP 3: Check if user is active
+                    if (!user.is_active) {
+                        throw new Error('Your account is deactivated. Contact admin.');
+                    }
+
+                    // ✅ SUCCESS: Set currentUser and show app
+                    currentUser = user;
+
+                    showApp();
+                    setTimeout(() => updateSidebarUser(), 100);
+                    loadAllData();
+                    document.getElementById('loginPassword').value = '';
+
+                    Toast.show('Welcome, ' + user.full_name + '!', 'success');
 
                 } catch (e) {
-                    errorEl.textContent = e.message || 'Invalid credentials.';
+                    errorEl.textContent = e.message || 'Login failed.';
                     errorEl.classList.add('visible');
                     btn.disabled = false;
                     btnText.textContent = 'Sign In';
                     spinner.style.display = 'none';
-                    // Clear password field for security
                     document.getElementById('loginPassword').value = '';
                 }
             },
 
-            async logout() {
-                try {
-                    await _sb.auth.signOut();
-                } catch (e) { console.warn('Sign out error:', e); }
+            logout() {
+                // No Supabase auth sign out – just clear local state
                 currentUser = null;
                 document.getElementById('appShell').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
                 document.getElementById('loginEmail').value = '';
                 document.getElementById('loginPassword').value = '';
-                // reset login button
                 const btn = document.getElementById('loginBtn');
                 btn.disabled = false;
                 document.getElementById('loginBtnText').textContent = 'Sign In';
@@ -2771,7 +2566,7 @@
         document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.login(); });
 
         /* ═══════════════════════════════════════════════════
-           NAVIGATION
+           NAVIGATION (unchanged)
         ═══════════════════════════════════════════════════ */
         const Nav = {
             current: 'dashboard',
@@ -2812,7 +2607,7 @@
         });
 
         /* ═══════════════════════════════════════════════════
-           DASHBOARD
+           DASHBOARD (unchanged)
         ═══════════════════════════════════════════════════ */
         const Dashboard = {
             async render() {
@@ -2834,29 +2629,22 @@
                     document.getElementById('statLostStudents').textContent = lostStudents;
 
                     const badge = document.getElementById('overdueNavBadge');
-                    if (overdue.length) { badge.style.display = '';
-                        badge.textContent = overdue.length; } else badge.style.display = 'none';
+                    if (overdue.length) { badge.style.display = ''; badge.textContent = overdue.length; } else badge.style.display = 'none';
 
                     const lostBadge = document.getElementById('lostNavBadge');
                     const lostCount = issues.filter(i => i.lost).length;
-                    if (lostCount) { lostBadge.style.display = '';
-                        lostBadge.textContent = lostCount; } else lostBadge.style.display = 'none';
+                    if (lostCount) { lostBadge.style.display = ''; lostBadge.textContent = lostCount; } else lostBadge.style.display = 'none';
 
                     const recent = issues.slice(0, 6);
                     const tbody = document.getElementById('recentIssuesTbody');
                     if (!recent.length) {
-                        tbody.innerHTML =
-                            `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--ink-muted)">No issues yet</td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--ink-muted)">No issues yet</td></tr>`;
                     } else {
                         tbody.innerHTML = recent.map(i => {
-                            const overdueDays = i.return_date && !i.returned && !i.lost ? U.daysDiff(i
-                                .return_date) : 0;
-                            const st = i.lost ?
-                                `<span class="badge badge-red">🚫 Lost</span>` :
-                                i.returned ?
-                                `<span class="badge badge-gray">Returned</span>` :
-                                overdueDays > 0 ?
-                                `<span class="badge badge-red">Overdue ${overdueDays}d</span>` :
+                            const overdueDays = i.return_date && !i.returned && !i.lost ? U.daysDiff(i.return_date) : 0;
+                            const st = i.lost ? `<span class="badge badge-red">🚫 Lost</span>` :
+                                i.returned ? `<span class="badge badge-gray">Returned</span>` :
+                                overdueDays > 0 ? `<span class="badge badge-red">Overdue ${overdueDays}d</span>` :
                                 `<span class="badge badge-green">Active</span>`;
                             return `<tr>
                             <td>${U.esc(i.student?.student_name || '?')}</td>
@@ -2872,8 +2660,7 @@
                     const logs = DB.getActivity();
                     const feed = document.getElementById('activityFeed');
                     if (!logs.length) {
-                        feed.innerHTML =
-                            `<div style="padding:22px 0;color:var(--ink-muted);font-size:.82rem">No activity yet.</div>`;
+                        feed.innerHTML = `<div style="padding:22px 0;color:var(--ink-muted);font-size:.82rem">No activity yet.</div>`;
                     } else {
                         feed.innerHTML = logs.slice(0, 12).map(l => `
                         <div class="activity-item">
@@ -2888,7 +2675,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           BOOKS MODULE
+           BOOKS MODULE (unchanged)
         ═══════════════════════════════════════════════════ */
         const Books = {
             editId: null,
@@ -2899,8 +2686,7 @@
 
             sort(field) {
                 if (this.sortField === field) this.sortDir *= -1;
-                else { this.sortField = field;
-                    this.sortDir = 1; }
+                else { this.sortField = field; this.sortDir = 1; }
                 this.renderFromCache();
             },
 
@@ -2924,13 +2710,9 @@
                     const grades = [...new Set(books.map(b => b.grade).filter(Boolean))].sort();
                     const cats = [...new Set(books.map(b => b.book_category).filter(Boolean))].sort();
                     const gEl = document.getElementById('bookGradeFilter');
-                    if (gEl) { const pv = gEl.value;
-                        gEl.innerHTML = '<option value="">All Grades</option>' + grades.map(g =>
-                            `<option value="${g}" ${g===pv?'selected':''}>${g}</option>`).join(''); }
+                    if (gEl) { const pv = gEl.value; gEl.innerHTML = '<option value="">All Grades</option>' + grades.map(g => `<option value="${g}" ${g===pv?'selected':''}>${g}</option>`).join(''); }
                     const cEl = document.getElementById('bookCatFilter');
-                    if (cEl) { const pv = cEl.value;
-                        cEl.innerHTML = '<option value="">All Categories</option>' + cats.map(c =>
-                            `<option value="${c}" ${c===pv?'selected':''}>${c}</option>`).join(''); }
+                    if (cEl) { const pv = cEl.value; cEl.innerHTML = '<option value="">All Categories</option>' + cats.map(c => `<option value="${c}" ${c===pv?'selected':''}>${c}</option>`).join(''); }
 
                     this.renderFromCache();
                 } catch (e) { Toast.show('Error loading books: ' + e.message, 'error'); }
@@ -2941,16 +2723,14 @@
                 const sorted = [...this._cache].sort((a, b) => {
                     const av = a[sf] ?? '';
                     const bv = b[sf] ?? '';
-                    return typeof av === 'number' ? (av - bv) * this.sortDir : String(av).localeCompare(String(bv)) *
-                        this.sortDir;
+                    return typeof av === 'number' ? (av - bv) * this.sortDir : String(av).localeCompare(String(bv)) * this.sortDir;
                 });
                 const { data, pages } = U.paginate(sorted, this.page);
                 const tbody = document.getElementById('booksTbody');
                 const isEditable = hasRole(['admin', 'librarian']);
 
                 if (!data.length) {
-                    tbody.innerHTML =
-                        `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📚</div><h3>No books found</h3><p>Add your first book to get started.</p></div></td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📚</div><h3>No books found</h3><p>Add your first book to get started.</p></div></td></tr>`;
                 } else {
                     tbody.innerHTML = data.map(b => `
                     <tr>
@@ -2974,8 +2754,7 @@
                 U.renderPager('booksPagination', this.page, pages, 'Books.goPage');
             },
 
-            goPage(p) { Books.page = p;
-                Books.renderFromCache(); },
+            goPage(p) { Books.page = p; Books.renderFromCache(); },
 
             openModal(editId = null) {
                 if (!requireRole(['admin', 'librarian'], 'modify books')) return;
@@ -2994,16 +2773,14 @@
                     document.getElementById('bkTot').value = b.tot ?? 0;
                 } else {
                     document.getElementById('bookModalTitle').textContent = '➕ Add Book';
-                    ['bkCategory', 'bkCurriculum', 'bkSubject', 'bkPublisher', 'bkGrade'].forEach(id => document
-                        .getElementById(id).value = '');
+                    ['bkCategory','bkCurriculum','bkSubject','bkPublisher','bkGrade'].forEach(id => document.getElementById(id).value = '');
                     document.getElementById('bkPages').value = 1;
                     document.getElementById('bkTot').value = 1;
                 }
                 openModal('bookModal');
             },
 
-            closeModal() { closeModal('bookModal');
-                this.editId = null; },
+            closeModal() { closeModal('bookModal'); this.editId = null; },
 
             async save() {
                 if (!requireRole(['admin', 'librarian'], 'save books')) return;
@@ -3017,31 +2794,22 @@
 
                 let valid = true;
                 clearFgErrors('bookModal');
-                if (!category) { fgErr('bkCategory', true);
-                    valid = false; }
-                if (!curriculum) { fgErr('bkCurriculum', true);
-                    valid = false; }
-                if (!subject) { fgErr('bkSubject', true);
-                    valid = false; }
-                if (!publisher) { fgErr('bkPublisher', true);
-                    valid = false; }
-                if (!grade) { fgErr('bkGrade', true);
-                    valid = false; }
-                if (pages < 0) { fgErr('bkPages', true);
-                    valid = false; }
-                if (tot < 0) { fgErr('bkTot', true);
-                    valid = false; }
+                if (!category) { fgErr('bkCategory', true); valid = false; }
+                if (!curriculum) { fgErr('bkCurriculum', true); valid = false; }
+                if (!subject) { fgErr('bkSubject', true); valid = false; }
+                if (!publisher) { fgErr('bkPublisher', true); valid = false; }
+                if (!grade) { fgErr('bkGrade', true); valid = false; }
+                if (pages < 0) { fgErr('bkPages', true); valid = false; }
+                if (tot < 0) { fgErr('bkTot', true); valid = false; }
                 if (!valid) return;
 
                 try {
                     if (this.editId) {
-                        await DB.updateBook(this.editId, { book_category: category, curriculum, subject,
-                            book_publisher: publisher, grade, pages, tot });
+                        await DB.updateBook(this.editId, { book_category: category, curriculum, subject, book_publisher: publisher, grade, pages, tot });
                         DB.addActivity('add', `📖 Book <strong>${subject}</strong> (${grade}) updated`);
                         Toast.show('Book updated!', 'success');
                     } else {
-                        await DB.addBook({ book_category: category, curriculum, subject, book_publisher: publisher,
-                            grade, pages, tot });
+                        await DB.addBook({ book_category: category, curriculum, subject, book_publisher: publisher, grade, pages, tot });
                         DB.addActivity('add', `📚 Book <strong>${subject}</strong> (${grade}) added`);
                         Toast.show('Book added!', 'success');
                     }
@@ -3066,7 +2834,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           STUDENTS MODULE
+           STUDENTS MODULE (unchanged)
         ═══════════════════════════════════════════════════ */
         const Students = {
             editId: null,
@@ -3078,8 +2846,7 @@
 
             sort(field) {
                 if (this.sortField === field) this.sortDir *= -1;
-                else { this.sortField = field;
-                    this.sortDir = 1; }
+                else { this.sortField = field; this.sortDir = 1; }
                 this.renderFromCache();
             },
 
@@ -3101,9 +2868,7 @@
 
                     const classes = [...new Set(students.map(s => s.class).filter(Boolean))].sort();
                     const cEl = document.getElementById('studentClassFilter');
-                    if (cEl) { const pv = cEl.value;
-                        cEl.innerHTML = '<option value="">All Classes</option>' + classes.map(c =>
-                            `<option value="${c}" ${c===pv?'selected':''}>${c}</option>`).join(''); }
+                    if (cEl) { const pv = cEl.value; cEl.innerHTML = '<option value="">All Classes</option>' + classes.map(c => `<option value="${c}" ${c===pv?'selected':''}>${c}</option>`).join(''); }
 
                     this._cache = students;
                     this.renderFromCache();
@@ -3115,16 +2880,14 @@
                 const sorted = [...this._cache].sort((a, b) => {
                     const av = a[sf] ?? '';
                     const bv = b[sf] ?? '';
-                    return typeof av === 'number' ? (av - bv) * this.sortDir : String(av).localeCompare(String(bv)) *
-                        this.sortDir;
+                    return typeof av === 'number' ? (av - bv) * this.sortDir : String(av).localeCompare(String(bv)) * this.sortDir;
                 });
                 const { data, pages } = U.paginate(sorted, this.page);
                 const tbody = document.getElementById('studentsTbody');
                 const isEditable = hasRole(['admin', 'librarian']);
 
                 if (!data.length) {
-                    tbody.innerHTML =
-                        `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎓</div><h3>No students found</h3><p>${this._cache.length === 0 ? 'Add students to get started.' : 'Try a different search.'}</p></div></td></tr>`;
+                    tbody.innerHTML = `<tr><td colspan="5"><div class="empty-state"><div class="empty-icon">🎓</div><h3>No students found</h3><p>${this._cache.length === 0 ? 'Add students to get started.' : 'Try a different search.'}</p></div></td></tr>`;
                 } else {
                     tbody.innerHTML = data.map(s => {
                         const active = this._issueCounts[s.student_id] || 0;
@@ -3145,8 +2908,7 @@
                 U.renderPager('studentsPagination', this.page, pages, 'Students.goPage');
             },
 
-            goPage(p) { Students.page = p;
-                Students.renderFromCache(); },
+            goPage(p) { Students.page = p; Students.renderFromCache(); },
 
             openModal(editId = null) {
                 if (!requireRole(['admin', 'librarian'], 'modify students')) return;
@@ -3166,8 +2928,7 @@
                 openModal('studentModal');
             },
 
-            closeModal() { closeModal('studentModal');
-                this.editId = null; },
+            closeModal() { closeModal('studentModal'); this.editId = null; },
 
             async save() {
                 if (!requireRole(['admin', 'librarian'], 'save students')) return;
@@ -3175,10 +2936,8 @@
                 const cls = document.getElementById('stClass').value.trim();
                 let valid = true;
                 clearFgErrors('studentModal');
-                if (!name) { fgErr('stName', true);
-                    valid = false; }
-                if (!cls) { fgErr('stClass', true);
-                    valid = false; }
+                if (!name) { fgErr('stName', true); valid = false; }
+                if (!cls) { fgErr('stClass', true); valid = false; }
                 if (!valid) return;
 
                 try {
@@ -3212,7 +2971,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           ISSUES MODULE
+           ISSUES MODULE (unchanged)
         ═══════════════════════════════════════════════════ */
         const Issues = {
             page: 1,
@@ -3252,14 +3011,12 @@
                     const isEditable = hasRole(['admin', 'librarian']);
 
                     if (!data.length) {
-                        tbody.innerHTML =
-                            `<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🔄</div><h3>No issues found</h3></div></td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="12"><div class="empty-state"><div class="empty-icon">🔄</div><h3>No issues found</h3></div></td></tr>`;
                     } else {
                         tbody.innerHTML = data.map(i => {
                             const returned = i.returned;
                             const od = (!returned && i.return_date) ? U.daysDiff(i.return_date) : 0;
-                            let stBadge = '',
-                                actionBtns = '';
+                            let stBadge = '', actionBtns = '';
                             const isLost = i.lost === true;
 
                             if (isLost) {
@@ -3278,8 +3035,7 @@
                               <button class="btn-lost btn-xs" onclick="Issues.openLostModal(${i.issue_id})">🚫 Lost</button>
                             `;
                             } else {
-                                actionBtns =
-                                    `<span style="color:var(--ink-faint);font-size:.7rem">${isEditable ? '—' : 'Read-only'}</span>`;
+                                actionBtns = `<span style="color:var(--ink-faint);font-size:.7rem">${isEditable ? '—' : 'Read-only'}</span>`;
                             }
 
                             const cond = i.book_condition || 'good';
@@ -3306,8 +3062,7 @@
                 } catch (e) { Toast.show('Error loading issues: ' + e.message, 'error'); }
             },
 
-            goPage(p) { Issues.page = p;
-                Issues.render(); },
+            goPage(p) { Issues.page = p; Issues.render(); },
 
             async openModal() {
                 if (!requireRole(['admin', 'librarian'], 'issue books')) return;
@@ -3318,9 +3073,7 @@
                     const loanDays = parseInt(localStorage.getItem('lib_loan_days') || '14');
 
                     document.getElementById('issueStudent').innerHTML = '<option value="">— Select Student —</option>' +
-                        students.map(s =>
-                            `<option value="${s.student_id}">${U.esc(s.student_name)} — ${U.esc(s.class)}</option>`
-                            ).join('');
+                        students.map(s => `<option value="${s.student_id}">${U.esc(s.student_name)} — ${U.esc(s.class)}</option>`).join('');
 
                     const issuedCounts = {};
                     activeIssues.forEach(i => { issuedCounts[i.book_id] = (issuedCounts[i.book_id] || 0) + 1; });
@@ -3359,12 +3112,9 @@
 
                 let valid = true;
                 clearFgErrors('issueModal');
-                if (!student_id) { fgErr('issueStudent', true, 'Select a student');
-                    valid = false; }
-                if (!book_id) { fgErr('issueBook', true, 'Select a book');
-                    valid = false; }
-                if (!book_code) { fgErr('issueBookCode', true, 'Enter the book code');
-                    valid = false; }
+                if (!student_id) { fgErr('issueStudent', true, 'Select a student'); valid = false; }
+                if (!book_id) { fgErr('issueBook', true, 'Select a book'); valid = false; }
+                if (!book_code) { fgErr('issueBookCode', true, 'Enter the book code'); valid = false; }
                 if (!valid) return;
 
                 try {
@@ -3381,9 +3131,7 @@
                     const sName = result.student?.student_name || student_id;
                     const bName = result.book?.subject || book_id;
                     const condNote = book_condition !== 'good' ? ` [${condLabel(book_condition)}]` : '';
-                    DB.addActivity('issue',
-                        `🔄 <strong>${bName}</strong> [${book_code}]${condNote} issued to <strong>${sName}</strong>`
-                        );
+                    DB.addActivity('issue', `🔄 <strong>${bName}</strong> [${book_code}]${condNote} issued to <strong>${sName}</strong>`);
                     Toast.show('Book issued!', 'success');
                     this.closeModal();
                     this.render();
@@ -3413,8 +3161,7 @@
                     async () => {
                         try {
                             await DB.returnIssue(issue_id);
-                            DB.addActivity('return',
-                                `↩ <strong>${bName}</strong>${code} returned by <strong>${sName}</strong>`);
+                            DB.addActivity('return', `↩ <strong>${bName}</strong>${code} returned by <strong>${sName}</strong>`);
                             Toast.show('Book returned!', 'success');
                             Issues.render();
                             Dashboard.render();
@@ -3448,8 +3195,7 @@
                 openModal('lostModal');
             },
 
-            closeLostModal() { closeModal('lostModal');
-                this._lostIssueId = null; },
+            closeLostModal() { closeModal('lostModal'); this._lostIssueId = null; },
 
             async confirmLost() {
                 if (!requireRole(['admin', 'librarian'], 'mark books lost')) return;
@@ -3481,7 +3227,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           LOST BOOKS RECORDS (Includes the PAID Button)
+           LOST BOOKS RECORDS (unchanged)
         ═══════════════════════════════════════════════════ */
         const LostBooks = {
             page: 1,
@@ -3506,8 +3252,7 @@
                     const isEditable = hasRole(['admin', 'librarian']);
 
                     if (!data.length) {
-                        tbody.innerHTML =
-                            `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🚫</div><h3>No lost book records</h3><p>When a book is marked lost, it will appear here with the fee to pay.</p></div></td></tr>`;
+                        tbody.innerHTML = `<tr><td colspan="9"><div class="empty-state"><div class="empty-icon">🚫</div><h3>No lost book records</h3><p>When a book is marked lost, it will appear here with the fee to pay.</p></div></td></tr>`;
                     } else {
                         tbody.innerHTML = data.map(i => {
                             const pages = i.book?.pages || 0;
@@ -3530,25 +3275,21 @@
                     U.renderPager('lostBooksPagination', this.page, pages, 'LostBooks.goPage');
 
                     const lostBadge = document.getElementById('lostNavBadge');
-                    if (lostIssues.length) { lostBadge.style.display = '';
-                        lostBadge.textContent = lostIssues.length; } else lostBadge.style.display = 'none';
+                    if (lostIssues.length) { lostBadge.style.display = ''; lostBadge.textContent = lostIssues.length; } else lostBadge.style.display = 'none';
 
                 } catch (e) {
                     Toast.show('Error loading lost books: ' + e.message, 'error');
                 }
             },
 
-            goPage(p) { LostBooks.page = p;
-                LostBooks.render(); },
+            goPage(p) { LostBooks.page = p; LostBooks.render(); },
 
             async exportCSV() {
                 try {
                     const data = this._cache;
                     if (!data.length) { Toast.show('No lost records to export.', 'warning'); return; }
                     const rows = [
-                        ['Student', 'Class', 'Book Subject', 'Book Code', 'Pages', 'Fee to Pay (FRW)', 'Lost Date',
-                            'Notes'
-                        ],
+                        ['Student', 'Class', 'Book Subject', 'Book Code', 'Pages', 'Fee to Pay (FRW)', 'Lost Date', 'Notes'],
                         ...data.map(i => {
                             const pages = i.book?.pages || 0;
                             const fee = calcLostFee(pages);
@@ -3582,13 +3323,7 @@
                     async () => {
                         try {
                             const { error } = await _sb.from('book_issues')
-                                .update({
-                                    lost: false,
-                                    returned: true,
-                                    return_date: U.today(),
-                                    lost_fee: 0,
-                                    condition_notes: "LOST FEE PAID. Student cleared."
-                                })
+                                .update({ lost: false, returned: true, return_date: U.today(), lost_fee: 0, condition_notes: "LOST FEE PAID. Student cleared." })
                                 .eq('issue_id', issue_id);
                             if (error) throw error;
                             Toast.show('Record cleared. Fee marked as paid.', 'success');
@@ -3603,7 +3338,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           REPORTS
+           REPORTS (unchanged)
         ═══════════════════════════════════════════════════ */
         const Reports = {
             current: 'issued',
@@ -3615,15 +3350,12 @@
 
                 try {
                     const today = U.today();
-                    const empty = (cols, msg) =>
-                        `<tr><td colspan="${cols}"><div class="empty-state"><div class="empty-icon">📋</div><h3>${msg}</h3></div></td></tr>`;
-                    let headH = '',
-                        rowsH = '';
+                    const empty = (cols, msg) => `<tr><td colspan="${cols}"><div class="empty-state"><div class="empty-icon">📋</div><h3>${msg}</h3></div></td></tr>`;
+                    let headH = '', rowsH = '';
 
                     if (type === 'issued') {
                         const issues = await DB.getIssues({ status: 'active' });
-                        headH =
-                            '<tr><th>ID</th><th>Student</th><th>Class</th><th>Book Code</th><th>Subject</th><th>Grade</th><th>Publisher</th><th>Condition</th><th>Issued</th><th>Due</th><th>Status</th></tr>';
+                        headH = '<tr><th>ID</th><th>Student</th><th>Class</th><th>Book Code</th><th>Subject</th><th>Grade</th><th>Publisher</th><th>Condition</th><th>Issued</th><th>Due</th><th>Status</th></tr>';
                         rowsH = !issues.length ? empty(11, 'No active issues') : issues.map(i => {
                             const od = i.return_date ? U.daysDiff(i.return_date) : -999;
                             return `<tr>
@@ -3643,8 +3375,7 @@
 
                     } else if (type === 'overdue') {
                         const issues = await DB.getIssues({ status: 'overdue' });
-                        headH =
-                            '<tr><th>ID</th><th>Student</th><th>Class</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Due</th><th>Days Over</th></tr>';
+                        headH = '<tr><th>ID</th><th>Student</th><th>Class</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Due</th><th>Days Over</th></tr>';
                         rowsH = !issues.length ? empty(8, 'No overdue books! 🎉') : issues.map(i => {
                             const od = U.daysDiff(i.return_date);
                             return `<tr>
@@ -3661,15 +3392,12 @@
 
                     } else if (type === 'damaged') {
                         const issues = await DB.getIssues({ status: 'damaged' });
-                        headH =
-                            '<tr><th>Issue ID</th><th>Student</th><th>Class</th><th>Book Code</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Notes</th><th>Issued On</th><th>Status</th></tr>';
+                        headH = '<tr><th>Issue ID</th><th>Student</th><th>Class</th><th>Book Code</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Notes</th><th>Issued On</th><th>Status</th></tr>';
                         rowsH = !issues.length ? empty(10, 'No books with problems recorded 🎉') : issues.map(i => {
                             const returned = i.returned;
                             const od = (!returned && i.return_date) ? U.daysDiff(i.return_date) : 0;
-                            const st = returned ?
-                                `<span class="badge badge-gray">Returned</span>` :
-                                od > 0 ?
-                                `<span class="badge badge-red">Overdue ${od}d</span>` :
+                            const st = returned ? `<span class="badge badge-gray">Returned</span>` :
+                                od > 0 ? `<span class="badge badge-red">Overdue ${od}d</span>` :
                                 `<span class="badge badge-green">Active</span>`;
                             return `<tr>
                             <td>${i.issue_id}</td>
@@ -3687,8 +3415,7 @@
 
                     } else if (type === 'lost') {
                         const issues = await DB.getIssues({ status: 'lost' });
-                        headH =
-                            '<tr><th>Student</th><th>Class</th><th>Book Subject</th><th>Book Code</th><th>Pages</th><th>Fee (FRW)</th><th>Lost Date</th><th>Notes</th></tr>';
+                        headH = '<tr><th>Student</th><th>Class</th><th>Book Subject</th><th>Book Code</th><th>Pages</th><th>Fee (FRW)</th><th>Lost Date</th><th>Notes</th></tr>';
                         rowsH = !issues.length ? empty(8, 'No lost books.') : issues.map(i => {
                             const pages = i.book?.pages || 0;
                             const fee = calcLostFee(pages);
@@ -3708,8 +3435,7 @@
                         const [books, issues] = await Promise.all([DB.getBooks(), DB.getIssues({ status: 'active' })]);
                         const issuedMap = {};
                         issues.forEach(i => { issuedMap[i.book_id] = (issuedMap[i.book_id] || 0) + 1; });
-                        headH =
-                            '<tr><th>ID</th><th>Category</th><th>Curriculum</th><th>Subject</th><th>Publisher</th><th>Grade</th><th>Pages</th><th>Total</th><th>Issued</th><th>Available</th></tr>';
+                        headH = '<tr><th>ID</th><th>Category</th><th>Curriculum</th><th>Subject</th><th>Publisher</th><th>Grade</th><th>Pages</th><th>Total</th><th>Issued</th><th>Available</th></tr>';
                         rowsH = !books.length ? empty(10, 'No books') : books.map(b => {
                             const issued = issuedMap[b.book_id] || 0;
                             const avail = Math.max(0, (b.tot || 0) - issued);
@@ -3729,8 +3455,7 @@
 
                     } else if (type === 'history') {
                         const issues = await DB.getIssues();
-                        headH =
-                            '<tr><th>ID</th><th>Student</th><th>Class</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Issued</th><th>Returned</th><th>Status</th></tr>';
+                        headH = '<tr><th>ID</th><th>Student</th><th>Class</th><th>Subject</th><th>Grade</th><th>Condition</th><th>Issued</th><th>Returned</th><th>Status</th></tr>';
                         rowsH = !issues.length ? empty(9, 'No records') : issues.map(i => `<tr>
                           <td>${i.issue_id}</td>
                           <td>${U.esc(i.student?.student_name||'?')}</td>
@@ -3767,34 +3492,22 @@
                         const issuedMap = {};
                         activeIssues.forEach(i => { issuedMap[i.book_id] = (issuedMap[i.book_id] || 0) + 1; });
                         rows = [
-                            ['ID', 'Category', 'Curriculum', 'Subject', 'Publisher', 'Grade', 'Pages', 'Total',
-                                'Issued', 'Available'
-                            ],
-                            ...books.map(b => { const iss = issuedMap[b.book_id] || 0; return [b.book_id, b
-                                    .book_category, b.curriculum, b.subject, b.book_publisher, b.grade, b
-                                    .pages || 0, b.tot || 0, iss, Math.max(0, (b.tot || 0) - iss)
-                                ]; })
+                            ['ID','Category','Curriculum','Subject','Publisher','Grade','Pages','Total','Issued','Available'],
+                            ...books.map(b => { const iss = issuedMap[b.book_id] || 0; return [b.book_id, b.book_category, b.curriculum, b.subject, b.book_publisher, b.grade, b.pages||0, b.tot||0, iss, Math.max(0,(b.tot||0)-iss)]; })
                         ];
                     } else if (type === 'lost') {
                         const lostData = await DB.getLostBooks();
                         rows = [
-                            ['Student', 'Class', 'Book Subject', 'Book Code', 'Pages', 'Fee (FRW)', 'Lost Date',
-                                'Notes'
-                            ],
+                            ['Student','Class','Book Subject','Book Code','Pages','Fee (FRW)','Lost Date','Notes'],
                             ...lostData.map(i => {
                                 const pages = i.book?.pages || 0;
                                 const fee = calcLostFee(pages);
-                                return [i.student?.student_name || '?', i.student?.class || '?', i.book
-                                        ?.subject || '?', i.book_code || '—', pages, fee, i.lost_date || i
-                                        .issue_date || '', i.condition_notes || ''
-                                    ];
+                                return [i.student?.student_name || '?', i.student?.class || '?', i.book?.subject || '?', i.book_code || '—', pages, fee, i.lost_date || i.issue_date || '', i.condition_notes || ''];
                             })
                         ];
                     } else {
                         rows = [
-                            ['Issue ID', 'Student', 'Class', 'Subject', 'Grade', 'Condition', 'Condition Notes',
-                                'Issued', 'Return Date', 'Status'
-                            ],
+                            ['Issue ID','Student','Class','Subject','Grade','Condition','Condition Notes','Issued','Return Date','Status'],
                             ...issues.map(i => [
                                 i.issue_id,
                                 i.student?.student_name || '?',
@@ -3821,19 +3534,17 @@
             }
         };
 
-        document.querySelectorAll('.rpt-tab').forEach(t => t.addEventListener('click', () => Reports.renderReport(t.dataset
-            .report)));
+        document.querySelectorAll('.rpt-tab').forEach(t => t.addEventListener('click', () => Reports.renderReport(t.dataset.report)));
 
         /* ═══════════════════════════════════════════════════
-           SETTINGS
+           SETTINGS (unchanged)
         ═══════════════════════════════════════════════════ */
         const Settings = {
             async render() {
                 const loanDays = localStorage.getItem('lib_loan_days') || '14';
                 document.getElementById('settingLoanDays').value = loanDays;
                 try {
-                    const [books, students, issues] = await Promise.all([DB.getBooks(), DB.getStudents(), DB
-                        .getIssues()]);
+                    const [books, students, issues] = await Promise.all([DB.getBooks(), DB.getStudents(), DB.getIssues()]);
                     const active = issues.filter(i => !i.returned);
                     const today = U.today();
                     const overdue = active.filter(i => i.return_date && i.return_date < today);
@@ -3872,7 +3583,7 @@
                 if (nw.length < 6) { Toast.show('New password must be 6+ characters', 'error'); return; }
                 if (nw !== conf) { Toast.show('Passwords do not match', 'error'); return; }
                 localStorage.setItem('lib_pw', nw);
-                ['currPw', 'newPw', 'confPw'].forEach(id => document.getElementById(id).value = '');
+                ['currPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
                 Toast.show('Password changed!', 'success');
             },
 
@@ -3932,32 +3643,21 @@
                             Toast.show('Reading backup file…', 'info');
                             const text = await file.text();
                             let backup;
-                            try { backup = JSON.parse(text); } catch { Toast.show('Invalid JSON file.',
-                                'error'); return; }
+                            try { backup = JSON.parse(text); } catch { Toast.show('Invalid JSON file.', 'error'); return; }
 
                             if (!backup.books || !backup.students || !backup.issues) {
                                 Toast.show('Invalid backup file — missing required sections.', 'error');
                                 return;
                             }
 
-                            let booksOk = 0,
-                                studentsOk = 0,
-                                issuesOk = 0;
+                            let booksOk = 0, studentsOk = 0, issuesOk = 0;
 
                             for (const b of backup.books) {
-                                try { const { book_id, _available, ...rest } = b; await _sb.from('books').insert([
-                                        rest
-                                    ]);
-                                    booksOk++; } catch {}
+                                try { const { book_id, _available, ...rest } = b; await _sb.from('books').insert([rest]); booksOk++; } catch {}
                             }
-
                             for (const s of backup.students) {
-                                try { const { student_id, ...rest } = s; await _sb.from('students').insert([
-                                        rest
-                                    ]);
-                                    studentsOk++; } catch {}
+                                try { const { student_id, ...rest } = s; await _sb.from('students').insert([rest]); studentsOk++; } catch {}
                             }
-
                             for (const i of backup.issues) {
                                 try {
                                     const { issue_id, book, student, ...rest } = i;
@@ -3974,10 +3674,8 @@
                                 localStorage.setItem('lib_activity', JSON.stringify(backup.activity));
                             }
 
-                            DB.addActivity('add', '⬆️ Backup restored — ' + booksOk + ' books, ' + studentsOk +
-                                ' students, ' + issuesOk + ' issues');
-                            Toast.show('Restore complete! Books: ' + booksOk + ', Students: ' + studentsOk +
-                                ', Issues: ' + issuesOk, 'success');
+                            DB.addActivity('add', '⬆️ Backup restored — ' + booksOk + ' books, ' + studentsOk + ' students, ' + issuesOk + ' issues');
+                            Toast.show('Restore complete! Books: ' + booksOk + ', Students: ' + studentsOk + ', Issues: ' + issuesOk, 'success');
                             Settings.render();
                             Dashboard.render();
                         } catch (e) {
@@ -4043,7 +3741,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           THEME (Native OS Color Picker Ready)
+           THEME (unchanged)
         ═══════════════════════════════════════════════════ */
         const Theme = {
             init() {
@@ -4074,9 +3772,9 @@
 
                 this.applyCustomColors(savedWord, savedBtn, savedSide, savedBg);
 
-                ['themeWordColor', 'themeBtnColor', 'themeSidebarColor', 'themeBgColor'].forEach(id => {
+                ['themeWordColor','themeBtnColor','themeSidebarColor','themeBgColor'].forEach(id => {
                     document.getElementById(id).addEventListener('input', function() {
-                        const hexEl = document.getElementById(id.replace('Color', 'Hex'));
+                        const hexEl = document.getElementById(id.replace('Color','Hex'));
                         if (hexEl) hexEl.textContent = this.value;
                         const w = document.getElementById('themeWordColor').value;
                         const b = document.getElementById('themeBtnColor').value;
@@ -4188,13 +3886,11 @@
         document.getElementById('themeToggle').addEventListener('click', () => Theme.toggle());
 
         /* ═══════════════════════════════════════════════════
-           MODAL HELPERS
+           MODAL HELPERS (unchanged)
         ═══════════════════════════════════════════════════ */
         function openModal(id) { document.getElementById(id)?.classList.add('open'); }
-
         function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
-        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o
-                .classList.remove('open'); }));
+        document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
 
         function fgErr(inputId, show, msg) {
             const el = document.getElementById(inputId);
@@ -4205,11 +3901,10 @@
             if (msg) { const e = fg.querySelector('.ferr'); if (e) e.textContent = msg; }
         }
 
-        function clearFgErrors(modalId) { document.getElementById(modalId)?.querySelectorAll('.fg').forEach(g => g
-                .classList.remove('has-error')); }
+        function clearFgErrors(modalId) { document.getElementById(modalId)?.querySelectorAll('.fg').forEach(g => g.classList.remove('has-error')); }
 
         /* ═══════════════════════════════════════════════════
-           MOBILE SIDEBAR
+           MOBILE SIDEBAR (unchanged)
         ═══════════════════════════════════════════════════ */
         document.getElementById('hamburger').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
@@ -4228,11 +3923,13 @@
         });
 
         /* ═══════════════════════════════════════════════════
-           INIT
+           INIT (UPDATED – no session check)
         ═══════════════════════════════════════════════════ */
         (function init() {
             Theme.init();
             initSupabase();
+            // 🔁 REMOVED: check for existing session – we always start at login
+            // (You can optionally implement session persistence using localStorage)
         })();
     </script>
 </body>
