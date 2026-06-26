@@ -1677,8 +1677,8 @@
                 <div class="nav-item" data-section="lostbooks"><span class="nav-icon">🚫</span>Lost Books Records<span class="nav-badge" id="lostNavBadge" style="display:none">0</span></div>
                 <div class="nav-item" data-section="reports"><span class="nav-icon">📊</span>Reports</div>
                 <div class="nav-label">Tools</div>
-                <div class="nav-item" data-section="bulkimport"><span class="nav-icon">🤖</span>Bulk Import</div>
-                <div class="nav-item" data-section="settings"><span class="nav-icon">⚙️</span>Settings</div>
+                <div class="nav-item" id="nav-bulkimport" data-section="bulkimport"><span class="nav-icon">🤖</span>Bulk Import</div>
+                <div class="nav-item" id="nav-settings" data-section="settings"><span class="nav-icon">⚙️</span>Settings</div>
             </div>
             <div class="sidebar-footer">
                 <button class="theme-btn" id="themeToggle">
@@ -1749,7 +1749,7 @@
                             <select class="flt-select" id="bookCatFilter" onchange="Books.render()">
                                 <option value="">All Categories</option>
                             </select>
-                            <button class="btn btn-primary" onclick="Books.openModal()">＋ Add Book</button>
+                            <button class="btn btn-primary" id="btn-add-book" onclick="Books.openModal()">＋ Add Book</button>
                         </div>
                     </div>
                     <div class="tbl-wrap">
@@ -1783,7 +1783,7 @@
                             <select class="flt-select" id="studentClassFilter" onchange="Students.render()">
                                 <option value="">All Classes</option>
                             </select>
-                            <button class="btn btn-primary" onclick="Students.openModal()">＋ Add Student</button>
+                            <button class="btn btn-primary" id="btn-add-student" onclick="Students.openModal()">＋ Add Student</button>
                         </div>
                     </div>
                     <div class="tbl-wrap">
@@ -1817,7 +1817,7 @@
                                 <option value="damaged">With Problems</option>
                                 <option value="lost">🚫 Lost</option>
                             </select>
-                            <button class="btn btn-primary" onclick="Issues.openModal()">＋ Issue Book</button>
+                            <button class="btn btn-primary" id="btn-issue-book" onclick="Issues.openModal()">＋ Issue Book</button>
                         </div>
                     </div>
                     <div class="tbl-wrap">
@@ -1934,12 +1934,12 @@
 
                                 <!-- password change section (kept small inside theme card) -->
                                 <hr style="border-color:var(--border);margin:14px 0 12px">
-                                <div style="font-weight:600;font-size:.82rem;margin-bottom:6px">🔑 Change Admin Password</div>
+                                <div style="font-weight:600;font-size:.82rem;margin-bottom:6px">🔑 Change Password</div>
                                 <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
                                     <div class="fg"><label style="font-size:.7rem">Current</label><input class="fi" type="password" id="currPw" placeholder="Current password" style="padding:6px 9px;font-size:.8rem"></div>
                                     <div class="fg"><label style="font-size:.7rem">New</label><input class="fi" type="password" id="newPw" placeholder="New password" style="padding:6px 9px;font-size:.8rem"></div>
                                     <div class="fg"><label style="font-size:.7rem">Confirm New</label><input class="fi" type="password" id="confPw" placeholder="Confirm new" style="padding:6px 9px;font-size:.8rem"></div>
-                                    <div style="display:flex;align-items:flex-end"><button class="btn btn-primary btn-sm" onclick="Settings.changePw()" style="width:100%">Change</button></div>
+                                    <div style="display:flex;align-items:flex-end"><button class="btn btn-primary btn-sm" id="btn-change-pw" onclick="Settings.changePw()" style="width:100%">Change</button></div>
                                 </div>
                             </div>
                         </div>
@@ -1966,7 +1966,7 @@
                                     <label>Default Loan Days</label>
                                     <input class="fi" type="number" id="settingLoanDays" placeholder="14" min="1" max="365">
                                 </div>
-                                <button class="btn btn-primary" onclick="Settings.saveLoan()">💾 Save</button>
+                                <button class="btn btn-primary" id="btn-save-loan" onclick="Settings.saveLoan()">💾 Save</button>
                             </div>
                         </div>
                         <div class="settings-card">
@@ -1987,14 +1987,14 @@
                                         <strong style="color:var(--ink);display:block;margin-bottom:3px">⬇️ Backup</strong>
                                         Download a complete JSON backup of all books, students, issues and activity logs from the database.
                                     </div>
-                                    <button class="btn btn-teal" onclick="Settings.downloadBackup()">⬇️ Download Backup</button>
+                                    <button class="btn btn-teal" id="btn-backup" onclick="Settings.downloadBackup()">⬇️ Download Backup</button>
                                 </div>
                                 <div style="flex:1;min-width:200px;border-left:1px solid var(--border);padding-left:20px">
                                     <div style="font-size:.82rem;color:var(--ink-muted);margin-bottom:12px;line-height:1.7">
                                         <strong style="color:var(--ink);display:block;margin-bottom:3px">⬆️ Restore</strong>
                                         Upload a previously downloaded backup file to restore all data back into the database.
                                     </div>
-                                    <label class="btn btn-emerald" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                                    <label class="btn btn-emerald" id="btn-restore" style="cursor:pointer;display:inline-flex;align-items:center;gap:6px">
                                         ⬆️ Restore Backup
                                         <input type="file" id="restoreFileInput" accept=".json" style="display:none" onchange="Settings.restoreBackup(this)">
                                     </label>
@@ -2004,7 +2004,7 @@
                                         <strong style="color:var(--crimson);display:block;margin-bottom:3px">🔴 Reset System</strong>
                                         Permanently delete ALL books, students, issue records and activity logs. This action cannot be undone.
                                     </div>
-                                    <button class="btn btn-danger" onclick="Settings.openResetModal()">🔴 Reset System</button>
+                                    <button class="btn btn-danger" id="btn-reset" onclick="Settings.openResetModal()">🔴 Reset System</button>
                                 </div>
                             </div>
                         </div>
@@ -2281,7 +2281,7 @@
                     currentUser = newUser;
                 } else if (!data.is_active) {
                     // User is inactive
-                    Toast.show('Your account is disabled. Contact admin.', 'error');
+                    Toast.show('Your account is deactivated. Contact admin.', 'error');
                     await _sb.auth.signOut();
                     return;
                 } else {
@@ -2290,7 +2290,7 @@
 
                 // User is valid — show app
                 showApp();
-                // Update sidebar user info
+                // Update sidebar user info & Role UI
                 updateSidebarUser();
                 // Load data
                 loadAllData();
@@ -2321,6 +2321,27 @@
             document.getElementById('sidebarUserName').textContent = name;
             document.getElementById('sidebarUserRole').textContent = role.charAt(0).toUpperCase() + role.slice(1);
             document.getElementById('sidebarAvatar').textContent = name.charAt(0).toUpperCase();
+
+            // --- ROLE-BASED UI RESTRICTIONS ---
+            const isAdmin = role === 'admin';
+            const isLibrarian = role === 'librarian' || isAdmin;
+            const isViewer = role === 'viewer';
+
+            // Show/Hide Sidebar Nav Items
+            document.getElementById('nav-settings').style.display = isAdmin ? 'flex' : 'none';
+            document.getElementById('nav-bulkimport').style.display = isLibrarian ? 'flex' : 'none';
+
+            // Show/Hide Top "Add" Buttons
+            document.getElementById('btn-add-book').style.display = isLibrarian ? 'inline-flex' : 'none';
+            document.getElementById('btn-add-student').style.display = isLibrarian ? 'inline-flex' : 'none';
+            document.getElementById('btn-issue-book').style.display = isLibrarian ? 'inline-flex' : 'none';
+
+            // Show/Hide Settings/Reset Buttons
+            document.getElementById('btn-change-pw').style.display = isAdmin ? 'inline-flex' : 'none';
+            document.getElementById('btn-save-loan').style.display = isAdmin ? 'inline-flex' : 'none';
+            document.getElementById('btn-backup').style.display = isAdmin ? 'inline-flex' : 'none';
+            document.getElementById('btn-restore').style.display = isAdmin ? 'inline-flex' : 'none';
+            document.getElementById('btn-reset').style.display = isAdmin ? 'inline-flex' : 'none';
         }
 
         function loadAllData() {
@@ -2330,6 +2351,26 @@
             Issues.render();
             LostBooks.render();
             Settings.render();
+        }
+
+        /* ═══════════════════════════════════════════════════
+           PERMISSION / ROLE HELPERS
+        ═══════════════════════════════════════════════════ */
+        function hasRole(allowedRoles) {
+            if (!currentUser) return false;
+            return allowedRoles.includes(currentUser.role);
+        }
+
+        function requireRole(allowedRoles, actionName) {
+            if (!currentUser) {
+                Toast.show('You must be logged in.', 'error');
+                return false;
+            }
+            if (!hasRole(allowedRoles)) {
+                Toast.show(`Permission denied. You need ${allowedRoles.join(' or ')} role to ${actionName}.`, 'error');
+                return false;
+            }
+            return true;
         }
 
         /* ═══════════════════════════════════════════════════
@@ -2881,12 +2922,14 @@
                 });
                 const { data, pages } = U.paginate(sorted, this.page);
                 const tbody = document.getElementById('booksTbody');
+                const isEditable = hasRole(['admin', 'librarian']);
 
                 if (!data.length) {
                     tbody.innerHTML =
                         `<tr><td colspan="10"><div class="empty-state"><div class="empty-icon">📚</div><h3>No books found</h3><p>Add your first book to get started.</p></div></td></tr>`;
                 } else {
-                    tbody.innerHTML = data.map(b => `<tr>
+                    tbody.innerHTML = data.map(b => `
+                    <tr>
                         <td><strong>${b.book_id}</strong></td>
                         <td><span class="badge badge-teal">${U.esc(b.book_category)}</span></td>
                         <td>${U.esc(b.curriculum)}</td>
@@ -2896,11 +2939,13 @@
                         <td><strong>${b.pages ?? 0}</strong></td>
                         <td><strong>${b.tot ?? 0}</strong></td>
                         <td><span class="badge ${(b._available ?? 0) > 0 ? 'badge-green' : 'badge-red'}">${b._available ?? 0}</span></td>
-                        <td><div class="t-actions">
-                          <button class="btn-te" onclick="Books.openModal(${b.book_id})">✏️ Edit</button>
-                          <button class="btn-dl" onclick="Books.delete(${b.book_id},'${U.esc(b.subject)}')">🗑️</button>
-                        </div></td>
-                      </tr>`).join('');
+                        <td><div class="t-actions">${
+                            isEditable ? `
+                            <button class="btn-te" onclick="Books.openModal(${b.book_id})">✏️ Edit</button>
+                            <button class="btn-dl" onclick="Books.delete(${b.book_id},'${U.esc(b.subject)}')">🗑️</button>
+                            ` : `<span style="color:var(--ink-faint);font-size:.7rem">Read-only</span>`
+                        }</div></td>
+                    </tr>`).join('');
                 }
                 U.renderPager('booksPagination', this.page, pages, 'Books.goPage');
             },
@@ -2909,6 +2954,7 @@
                 Books.renderFromCache(); },
 
             openModal(editId = null) {
+                if (!requireRole(['admin', 'librarian'], 'modify books')) return;
                 this.editId = editId;
                 clearFgErrors('bookModal');
                 if (editId) {
@@ -2936,6 +2982,7 @@
                 this.editId = null; },
 
             async save() {
+                if (!requireRole(['admin', 'librarian'], 'save books')) return;
                 const category = document.getElementById('bkCategory').value.trim();
                 const curriculum = document.getElementById('bkCurriculum').value.trim();
                 const subject = document.getElementById('bkSubject').value.trim();
@@ -2981,6 +3028,7 @@
             },
 
             async delete(book_id, title) {
+                if (!requireRole(['admin', 'librarian'], 'delete books')) return;
                 Confirm.show('Delete Book', `Delete "${title}"? Cannot be undone.`, async () => {
                     try {
                         await DB.deleteBook(book_id);
@@ -3048,6 +3096,7 @@
                 });
                 const { data, pages } = U.paginate(sorted, this.page);
                 const tbody = document.getElementById('studentsTbody');
+                const isEditable = hasRole(['admin', 'librarian']);
 
                 if (!data.length) {
                     tbody.innerHTML =
@@ -3060,10 +3109,12 @@
                           <td>${U.esc(s.student_name)}</td>
                           <td><span class="badge badge-teal">${U.esc(s.class)}</span></td>
                           <td><span class="badge ${active > 0 ? 'badge-amber' : 'badge-gray'}">${active}</span></td>
-                          <td><div class="t-actions">
-                            <button class="btn-te" onclick="Students.openModal(${s.student_id})">✏️</button>
-                            <button class="btn-dl" onclick="Students.delete(${s.student_id},'${U.esc(s.student_name)}')">🗑️</button>
-                          </div></td>
+                          <td><div class="t-actions">${
+                              isEditable ? `
+                              <button class="btn-te" onclick="Students.openModal(${s.student_id})">✏️</button>
+                              <button class="btn-dl" onclick="Students.delete(${s.student_id},'${U.esc(s.student_name)}')">🗑️</button>
+                              ` : `<span style="color:var(--ink-faint);font-size:.7rem">Read-only</span>`
+                          }</div></td>
                         </tr>`;
                     }).join('');
                 }
@@ -3074,6 +3125,7 @@
                 Students.renderFromCache(); },
 
             openModal(editId = null) {
+                if (!requireRole(['admin', 'librarian'], 'modify students')) return;
                 this.editId = editId;
                 clearFgErrors('studentModal');
                 if (editId) {
@@ -3094,6 +3146,7 @@
                 this.editId = null; },
 
             async save() {
+                if (!requireRole(['admin', 'librarian'], 'save students')) return;
                 const name = document.getElementById('stName').value.trim();
                 const cls = document.getElementById('stClass').value.trim();
                 let valid = true;
@@ -3121,6 +3174,7 @@
             },
 
             async delete(student_id, name) {
+                if (!requireRole(['admin', 'librarian'], 'delete students')) return;
                 Confirm.show('Remove Student', `Remove "${name}"?`, async () => {
                     try {
                         await DB.deleteStudent(student_id);
@@ -3171,6 +3225,7 @@
                     const sorted = [...issues].sort((a, b) => (b.issue_date || '').localeCompare(a.issue_date || ''));
                     const { data, pages } = U.paginate(sorted, this.page);
                     const tbody = document.getElementById('issuesTbody');
+                    const isEditable = hasRole(['admin', 'librarian']);
 
                     if (!data.length) {
                         tbody.innerHTML =
@@ -3193,17 +3248,14 @@
                                 stBadge = `<span class="badge badge-green">Active</span>`;
                             }
 
-                            if (!returned && !isLost) {
+                            if (isEditable && !returned && !isLost) {
                                 actionBtns = `
                               <button class="btn-rt btn-xs" onclick="Issues.returnBook(${i.issue_id})">↩ Return</button>
                               <button class="btn-lost btn-xs" onclick="Issues.openLostModal(${i.issue_id})">🚫 Lost</button>
                             `;
-                            } else if (isLost) {
-                                actionBtns =
-                                    `<span style="font-size:.7rem;color:var(--ink-muted)">—</span>`;
                             } else {
                                 actionBtns =
-                                    `<span style="font-size:.7rem;color:var(--ink-muted)">—</span>`;
+                                    `<span style="color:var(--ink-faint);font-size:.7rem">${isEditable ? '—' : 'Read-only'}</span>`;
                             }
 
                             const cond = i.book_condition || 'good';
@@ -3234,6 +3286,7 @@
                 Issues.render(); },
 
             async openModal() {
+                if (!requireRole(['admin', 'librarian'], 'issue books')) return;
                 try {
                     const [students, books, activeIssues] = await Promise.all([
                         DB.getStudents(), DB.getBooks(), DB.getIssues({ status: 'active' })
@@ -3271,6 +3324,7 @@
             closeModal() { closeModal('issueModal'); },
 
             async save() {
+                if (!requireRole(['admin', 'librarian'], 'issue books')) return;
                 const student_id = parseInt(document.getElementById('issueStudent').value);
                 const book_id = parseInt(document.getElementById('issueBook').value);
                 const book_code = document.getElementById('issueBookCode').value.trim();
@@ -3314,6 +3368,7 @@
             },
 
             async returnBook(issue_id) {
+                if (!requireRole(['admin', 'librarian'], 'return books')) return;
                 const issue = this._cache.find(i => i.issue_id === issue_id);
                 const bName = issue?.book?.subject || 'Book';
                 const sName = issue?.student?.student_name || 'Student';
@@ -3349,6 +3404,7 @@
             _lostIssueId: null,
 
             async openLostModal(issue_id) {
+                if (!requireRole(['admin', 'librarian'], 'mark books lost')) return;
                 const issue = this._cache.find(i => i.issue_id === issue_id);
                 if (!issue) { Toast.show('Issue not found.', 'error'); return; }
                 this._lostIssueId = issue_id;
@@ -3373,6 +3429,7 @@
                 this._lostIssueId = null; },
 
             async confirmLost() {
+                if (!requireRole(['admin', 'librarian'], 'mark books lost')) return;
                 const issue_id = this._lostIssueId;
                 if (!issue_id) { Toast.show('No issue selected.', 'error'); return; }
 
@@ -3745,12 +3802,14 @@
             },
 
             saveLoan() {
+                if (!requireRole(['admin'], 'change system loan settings')) return;
                 const v = parseInt(document.getElementById('settingLoanDays').value) || 14;
                 localStorage.setItem('lib_loan_days', v);
                 Toast.show(`Loan period set to ${v} days`, 'success');
             },
 
             changePw() {
+                if (!requireRole(['admin'], 'change passwords')) return;
                 const curr = document.getElementById('currPw').value;
                 const nw = document.getElementById('newPw').value;
                 const conf = document.getElementById('confPw').value;
@@ -3764,6 +3823,7 @@
             },
 
             async downloadBackup() {
+                if (!requireRole(['admin'], 'download backup')) return;
                 try {
                     Toast.show('Preparing backup…', 'info');
                     const [books, students, issues] = await Promise.all([
@@ -3805,6 +3865,7 @@
             },
 
             async restoreBackup(input) {
+                if (!requireRole(['admin'], 'restore backup')) return;
                 const file = input.files[0];
                 if (!file) return;
                 input.value = '';
@@ -3874,6 +3935,7 @@
             },
 
             openResetModal() {
+                if (!requireRole(['admin'], 'reset the system')) return;
                 document.getElementById('resetPwInput').value = '';
                 document.getElementById('resetPwFg').classList.remove('has-error');
                 openModal('resetModal');
@@ -3886,6 +3948,7 @@
             },
 
             async confirmReset() {
+                if (!requireRole(['admin'], 'reset the system')) return;
                 const entered = document.getElementById('resetPwInput').value;
                 const stored = localStorage.getItem('lib_pw') || 'admin123';
                 const fg = document.getElementById('resetPwFg');
@@ -4002,6 +4065,7 @@
             },
 
             saveCustomColors() {
+                if (!requireRole(['admin', 'librarian'], 'save color settings')) return;
                 const bg = document.getElementById('themeBgColor').value;
                 const accent = document.getElementById('themeAccentColor').value;
                 localStorage.setItem('lib_theme_bg', bg);
@@ -4011,6 +4075,7 @@
             },
 
             resetColors() {
+                if (!requireRole(['admin', 'librarian'], 'reset colors')) return;
                 const defaultBg = '#fafaf9';
                 const defaultAccent = '#c2410c';
                 document.getElementById('themeBgColor').value = defaultBg;
