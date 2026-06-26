@@ -2107,7 +2107,7 @@
 
     <script>
         /* ═══════════════════════════════════════════════════
-           SAFE SUPABASE CONFIG (unchanged)
+           SAFE SUPABASE CONFIG
         ═══════════════════════════════════════════════════ */
         if (typeof SUPABASE_URL === 'undefined') var SUPABASE_URL = 'https://uvispwigefzhjvkqcxkm.supabase.co';
         if (typeof SUPABASE_ANON === 'undefined') var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA';
@@ -2119,14 +2119,87 @@
             try {
                 _sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
                 console.log('✅ Supabase client initialized');
-                // 🔁 REMOVED: session check – we no longer use Supabase Auth
             } catch (e) {
                 console.error('Supabase init failed:', e);
                 Toast.show('Supabase connection failed: ' + e.message, 'error');
             }
         }
 
-        // 🔁 REMOVED: verifyAndSetUser – not needed anymore
+        /* ─── SSO Auto‑Login (Step 3.2) ─── */
+        async function handleSSO() {
+            const hash = window.location.hash;
+            if (!hash) return false;
+
+            const params = new URLSearchParams(hash.substring(1));
+            const access_token = params.get('access_token');
+            const refresh_token = params.get('refresh_token');
+
+            if (!access_token || !refresh_token) return false;
+
+            try {
+                const { data: { session }, error: sessionError } = await _sb.auth.setSession({
+                    access_token,
+                    refresh_token
+                });
+                if (sessionError) throw sessionError;
+                if (!session) throw new Error('No session returned from setSession');
+
+                const { data: { user: authUser }, error: userError } = await _sb.auth.getUser();
+                if (userError) throw userError;
+                if (!authUser) throw new Error('No authenticated user');
+
+                const { data: appUser, error: fetchError } = await _sb
+                    .from('app_users')
+                    .select('*')
+                    .eq('id', authUser.id)
+                    .maybeSingle();
+
+                if (fetchError) throw fetchError;
+
+                let userRecord;
+                if (!appUser) {
+                    const newUser = {
+                        id: authUser.id,
+                        email: authUser.email,
+                        full_name: authUser.user_metadata?.full_name || authUser.email,
+                        role: 'viewer',
+                        is_active: true,
+                        password: null
+                    };
+                    const { data: created, error: createError } = await _sb
+                        .from('app_users')
+                        .insert([newUser])
+                        .select()
+                        .single();
+                    if (createError) throw createError;
+                    userRecord = created;
+                } else {
+                    userRecord = appUser;
+                }
+
+                if (!userRecord.is_active) {
+                    Toast.show('Your account is deactivated. Contact admin.', 'error');
+                    window.location.href = window.location.pathname;
+                    return false;
+                }
+
+                currentUser = userRecord;
+                showApp();
+                setTimeout(() => updateSidebarUser(), 100);
+                loadAllData();
+                await DB.addActivity('Login', 'User ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ') logged in via SSO');
+                Toast.show('Welcome, ' + (currentUser.full_name || currentUser.email) + '!', 'success');
+
+                window.history.replaceState({}, document.title, window.location.pathname);
+                return true;
+
+            } catch (e) {
+                console.error('SSO error:', e);
+                Toast.show('SSO login failed: ' + e.message, 'error');
+                window.location.href = window.location.pathname;
+                return false;
+            }
+        }
 
         function showApp() {
             document.getElementById('authScreen').classList.add('hidden');
@@ -2152,7 +2225,6 @@
             document.getElementById('btn-add-book').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-add-student').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-issue-book').style.display = isLibrarian ? 'inline-flex' : 'none';
-            // optional for change password
             document.getElementById('btn-save-loan').style.display = isAdmin ? 'inline-flex' : 'none';
             document.getElementById('btn-backup').style.display = isAdmin ? 'inline-flex' : 'none';
             document.getElementById('btn-restore').style.display = isAdmin ? 'inline-flex' : 'none';
@@ -2168,9 +2240,7 @@
             Settings.render();
         }
 
-        /* ═══════════════════════════════════════════════════
-           PERMISSION / ROLE HELPERS (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── PERMISSION / ROLE HELPERS ─── */
         function hasRole(allowedRoles) {
             if (!currentUser) return false;
             return allowedRoles.includes(currentUser.role);
@@ -2188,9 +2258,7 @@
             return true;
         }
 
-        /* ═══════════════════════════════════════════════════
-           CONDITION HELPERS (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── CONDITION HELPERS ─── */
         const CONDITION_MAP = {
             good: { label: '✅ Good', cls: 'badge-green' },
             minor_damage: { label: '🟡 Minor Damage', cls: 'badge-amber' },
@@ -2208,9 +2276,7 @@
             return (CONDITION_MAP[val] || CONDITION_MAP['good']).label;
         }
 
-        /* ═══════════════════════════════════════════════════
-           LOST-BOOK FEE CALCULATION (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── LOST-BOOK FEE CALCULATION ─── */
         const LOST_FEE_PER_PAGE = 50;
         const LOST_FEE_COVER = 1000;
 
@@ -2224,7 +2290,7 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           DATABASE LAYER (unchanged)
+           DATABASE LAYER (UPDATED: addActivity now inserts into activity_logs)
         ═══════════════════════════════════════════════════ */
         const DB = {
             async testConn() {
@@ -2404,20 +2470,38 @@
                 }));
             },
 
+            // ─── UPDATED ACTIVITY LOGGING ───
             getActivity() {
                 try { return JSON.parse(localStorage.getItem('lib_activity')) || []; } catch { return []; }
             },
-            addActivity(type, text) {
+
+            async addActivity(action, details) {
+                // Insert into the actual activity_logs table in Supabase
+                if (currentUser) {
+                    try {
+                        const { error } = await _sb.from('activity_logs').insert([
+                            { user_id: currentUser.id, action, details, created_at: new Date().toISOString() }
+                        ]);
+                        if (error) console.error('Activity log insert error:', error);
+                    } catch (e) { console.error('Activity log error:', e); }
+                }
+
+                // Keep local cache for the UI feed (Dashboard)
                 const logs = this.getActivity();
-                logs.unshift({ type, text, time: new Date().toISOString() });
+                const typeMap = {
+                    'Login':'login', 'Logout':'logout', 'Add Book':'add', 'Update Book':'add', 'Delete Book':'delete',
+                    'Add Student':'add', 'Update Student':'add', 'Delete Student':'delete',
+                    'Issue Book':'issue', 'Return Book':'return', 'Mark Lost':'lost', 'Clear Lost':'return',
+                    'Password Change':'update', 'Backup':'add', 'Restore':'add', 'Reset':'delete'
+                };
+                const type = typeMap[action] || 'info';
+                logs.unshift({ type, text: details, time: new Date().toISOString() });
                 if (logs.length > 60) logs.pop();
                 localStorage.setItem('lib_activity', JSON.stringify(logs));
             }
         };
 
-        /* ═══════════════════════════════════════════════════
-           UTILITIES (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── UTILITIES ─── */
         const U = {
             today: () => new Date().toISOString().split('T')[0],
             addDays(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x.toISOString().split('T')[0]; },
@@ -2447,9 +2531,7 @@
             }
         };
 
-        /* ═══════════════════════════════════════════════════
-           TOAST & CONFIRM (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── TOAST & CONFIRM ─── */
         const Toast = {
             show(msg, type = 'success') {
                 const icons = { success: '✅', error: '❌', warning: '⚠️', info: 'ℹ️' };
@@ -2504,7 +2586,6 @@
                 spinner.style.display = 'inline-block';
 
                 try {
-                    // 🔁 STEP 1: Look up user in app_users by email
                     const { data: user, error } = await _sb
                         .from('app_users')
                         .select('*')
@@ -2514,26 +2595,24 @@
                     if (error) throw error;
                     if (!user) throw new Error('User not found.');
 
-                    // 🔁 STEP 2: Check password (plaintext comparison)
-                    // ⚠️ For production, use bcrypt.compare() instead
+                    // Plaintext password comparison (for production, use bcrypt)
                     if (user.password !== password) {
                         throw new Error('Invalid password.');
                     }
 
-                    // 🔁 STEP 3: Check if user is active
                     if (!user.is_active) {
                         throw new Error('Your account is deactivated. Contact admin.');
                     }
 
-                    // ✅ SUCCESS: Set currentUser and show app
                     currentUser = user;
-
                     showApp();
                     setTimeout(() => updateSidebarUser(), 100);
                     loadAllData();
                     document.getElementById('loginPassword').value = '';
 
-                    Toast.show('Welcome, ' + user.full_name + '!', 'success');
+                    await DB.addActivity('Login', 'User ' + (user.full_name || user.email) + ' (ID: ' + user.id + ') logged in');
+
+                    Toast.show('Welcome, ' + (user.full_name || user.email) + '!', 'success');
 
                 } catch (e) {
                     errorEl.textContent = e.message || 'Login failed.';
@@ -2545,8 +2624,17 @@
                 }
             },
 
-            logout() {
-                // No Supabase auth sign out – just clear local state
+            async logout() {
+                try {
+                    await _sb.auth.signOut();
+                } catch (e) {
+                    console.warn('SignOut error:', e);
+                }
+
+                if (currentUser) {
+                    await DB.addActivity('Logout', 'User ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ') logged out');
+                }
+
                 currentUser = null;
                 document.getElementById('appShell').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
@@ -2561,7 +2649,6 @@
             }
         };
 
-        // Allow Enter key on login form
         document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.login(); });
         document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.login(); });
 
@@ -2607,7 +2694,7 @@
         });
 
         /* ═══════════════════════════════════════════════════
-           DASHBOARD (unchanged)
+           DASHBOARD (unchanged, but updated addActivity calls)
         ═══════════════════════════════════════════════════ */
         const Dashboard = {
             async render() {
@@ -2675,7 +2762,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           BOOKS MODULE (unchanged)
+           BOOKS MODULE (unchanged, updated addActivity calls)
         ═══════════════════════════════════════════════════ */
         const Books = {
             editId: null,
@@ -2806,11 +2893,11 @@
                 try {
                     if (this.editId) {
                         await DB.updateBook(this.editId, { book_category: category, curriculum, subject, book_publisher: publisher, grade, pages, tot });
-                        DB.addActivity('add', `📖 Book <strong>${subject}</strong> (${grade}) updated`);
+                        await DB.addActivity('Update Book', '📖 Book <strong>' + subject + '</strong> (' + grade + ') updated');
                         Toast.show('Book updated!', 'success');
                     } else {
                         await DB.addBook({ book_category: category, curriculum, subject, book_publisher: publisher, grade, pages, tot });
-                        DB.addActivity('add', `📚 Book <strong>${subject}</strong> (${grade}) added`);
+                        await DB.addActivity('Add Book', '📚 Book <strong>' + subject + '</strong> (' + grade + ') added');
                         Toast.show('Book added!', 'success');
                     }
                     this.closeModal();
@@ -2821,10 +2908,10 @@
 
             async delete(book_id, title) {
                 if (!requireRole(['admin', 'librarian'], 'delete books')) return;
-                Confirm.show('Delete Book', `Delete "${title}"? Cannot be undone.`, async () => {
+                Confirm.show('Delete Book', 'Delete "' + title + '"? Cannot be undone.', async () => {
                     try {
                         await DB.deleteBook(book_id);
-                        DB.addActivity('delete', `🗑️ Book <strong>${title}</strong> deleted`);
+                        await DB.addActivity('Delete Book', '🗑️ Book <strong>' + title + '</strong> deleted');
                         Toast.show('Book deleted.', 'success');
                         Books.render();
                         Dashboard.render();
@@ -2834,7 +2921,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           STUDENTS MODULE (unchanged)
+           STUDENTS MODULE (unchanged, updated addActivity calls)
         ═══════════════════════════════════════════════════ */
         const Students = {
             editId: null,
@@ -2943,11 +3030,11 @@
                 try {
                     if (this.editId) {
                         await DB.updateStudent(this.editId, { student_name: name, class: cls });
-                        DB.addActivity('add', `🎓 Student <strong>${name}</strong> updated`);
+                        await DB.addActivity('Update Student', '🎓 Student <strong>' + name + '</strong> updated');
                         Toast.show('Student updated!', 'success');
                     } else {
                         await DB.addStudent({ student_name: name, class: cls });
-                        DB.addActivity('add', `🎓 Student <strong>${name}</strong> added`);
+                        await DB.addActivity('Add Student', '🎓 Student <strong>' + name + '</strong> added');
                         Toast.show('Student added!', 'success');
                     }
                     this.closeModal();
@@ -2958,10 +3045,10 @@
 
             async delete(student_id, name) {
                 if (!requireRole(['admin', 'librarian'], 'delete students')) return;
-                Confirm.show('Remove Student', `Remove "${name}"?`, async () => {
+                Confirm.show('Remove Student', 'Remove "' + name + '"?', async () => {
                     try {
                         await DB.deleteStudent(student_id);
-                        DB.addActivity('delete', `🗑️ Student <strong>${name}</strong> removed`);
+                        await DB.addActivity('Delete Student', '🗑️ Student <strong>' + name + '</strong> removed');
                         Toast.show('Student removed.', 'success');
                         Students.render();
                         Dashboard.render();
@@ -2971,7 +3058,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           ISSUES MODULE (unchanged)
+           ISSUES MODULE (unchanged, updated addActivity calls)
         ═══════════════════════════════════════════════════ */
         const Issues = {
             page: 1,
@@ -3130,8 +3217,8 @@
                     });
                     const sName = result.student?.student_name || student_id;
                     const bName = result.book?.subject || book_id;
-                    const condNote = book_condition !== 'good' ? ` [${condLabel(book_condition)}]` : '';
-                    DB.addActivity('issue', `🔄 <strong>${bName}</strong> [${book_code}]${condNote} issued to <strong>${sName}</strong>`);
+                    const condNote = book_condition !== 'good' ? ' [' + condLabel(book_condition) + ']' : '';
+                    await DB.addActivity('Issue Book', '🔄 <strong>' + bName + '</strong> [' + book_code + ']' + condNote + ' issued to <strong>' + sName + '</strong>');
                     Toast.show('Book issued!', 'success');
                     this.closeModal();
                     this.render();
@@ -3144,24 +3231,24 @@
                 const issue = this._cache.find(i => i.issue_id === issue_id);
                 const bName = issue?.book?.subject || 'Book';
                 const sName = issue?.student?.student_name || 'Student';
-                const code = issue?.book_code ? ` [${issue.book_code}]` : '';
+                const code = issue?.book_code ? ' [' + issue.book_code + ']' : '';
                 const cond = issue?.book_condition || 'good';
                 const notes = issue?.condition_notes || '';
 
                 let condMsg = '';
                 if (cond !== 'good') {
-                    condMsg = `\n\n⚠️ When issued this book was recorded as: ${condLabel(cond)}`;
-                    if (notes) condMsg += `\nNotes: "${notes}"`;
+                    condMsg = '\n\n⚠️ When issued this book was recorded as: ' + condLabel(cond);
+                    if (notes) condMsg += '\nNotes: "' + notes + '"';
                     condMsg += '\n\nCheck the book before confirming the return.';
                 }
 
                 Confirm.show(
                     'Return Book',
-                    `Return "${bName}"${code} from ${sName}?${condMsg}`,
+                    'Return "' + bName + '"' + code + ' from ' + sName + '?' + condMsg,
                     async () => {
                         try {
                             await DB.returnIssue(issue_id);
-                            DB.addActivity('return', `↩ <strong>${bName}</strong>${code} returned by <strong>${sName}</strong>`);
+                            await DB.addActivity('Return Book', '↩ <strong>' + bName + '</strong>' + code + ' returned by <strong>' + sName + '</strong>');
                             Toast.show('Book returned!', 'success');
                             Issues.render();
                             Dashboard.render();
@@ -3214,8 +3301,8 @@
                     await DB.markLost(issue_id, fee, note);
                     const sName = issue.student?.student_name || 'Student';
                     const bName = issue.book?.subject || 'Book';
-                    DB.addActivity('lost', `🚫 <strong>${bName}</strong> marked LOST by <strong>${sName}</strong> — fee ${fmtFRW(fee)}`);
-                    Toast.show(`Book marked as lost. Fee: ${fmtFRW(fee)}`, 'warning');
+                    await DB.addActivity('Mark Lost', '🚫 <strong>' + bName + '</strong> marked LOST by <strong>' + sName + '</strong> — fee ' + fmtFRW(fee));
+                    Toast.show('Book marked as lost. Fee: ' + fmtFRW(fee), 'warning');
                     this.closeLostModal();
                     this.render();
                     Dashboard.render();
@@ -3227,7 +3314,7 @@
         };
 
         /* ═══════════════════════════════════════════════════
-           LOST BOOKS RECORDS (unchanged)
+           LOST BOOKS RECORDS (unchanged, updated addActivity calls)
         ═══════════════════════════════════════════════════ */
         const LostBooks = {
             page: 1,
@@ -3309,7 +3396,7 @@
                     const blob = new Blob([csv], { type: 'text/csv' });
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
-                    a.download = `apapec_lost_books_${U.today()}.csv`;
+                    a.download = 'apapec_lost_books_' + U.today() + '.csv';
                     a.click();
                     Toast.show('Lost books CSV exported!', 'success');
                 } catch (e) { Toast.show('Export error: ' + e.message, 'error'); }
@@ -3327,7 +3414,7 @@
                                 .eq('issue_id', issue_id);
                             if (error) throw error;
                             Toast.show('Record cleared. Fee marked as paid.', 'success');
-                            DB.addActivity('return', '💸 Lost book fee paid and student cleared.');
+                            await DB.addActivity('Clear Lost', '💸 Lost book fee paid and student cleared.');
                             LostBooks.render();
                             Dashboard.render();
                         } catch (e) { Toast.show('Error: ' + e.message, 'error'); }
@@ -3527,7 +3614,7 @@
                     const blob = new Blob([csv], { type: 'text/csv' });
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
-                    a.download = `apapec_lib_${type}_${today}.csv`;
+                    a.download = 'apapec_lib_' + type + '_' + today + '.csv';
                     a.click();
                     Toast.show('CSV exported!', 'success');
                 } catch (e) { Toast.show('Export error: ' + e.message, 'error'); }
@@ -3537,7 +3624,7 @@
         document.querySelectorAll('.rpt-tab').forEach(t => t.addEventListener('click', () => Reports.renderReport(t.dataset.report)));
 
         /* ═══════════════════════════════════════════════════
-           SETTINGS (unchanged)
+           SETTINGS (UPDATED: changePw now updates app_users)
         ═══════════════════════════════════════════════════ */
         const Settings = {
             async render() {
@@ -3573,18 +3660,38 @@
                 Toast.show(`Loan period set to ${v} days`, 'success');
             },
 
-            changePw() {
+            async changePw() {
                 if (!requireRole(['admin'], 'change passwords')) return;
                 const curr = document.getElementById('currPw').value;
                 const nw = document.getElementById('newPw').value;
                 const conf = document.getElementById('confPw').value;
-                const stored = localStorage.getItem('lib_pw') || 'admin123';
-                if (curr !== stored) { Toast.show('Current password is incorrect', 'error'); return; }
+
+                if (!currentUser) { Toast.show('Not logged in.', 'error'); return; }
+
+                // Verify current password against app_users.password
+                if (currentUser.password !== curr) {
+                    Toast.show('Current password is incorrect', 'error');
+                    return;
+                }
                 if (nw.length < 6) { Toast.show('New password must be 6+ characters', 'error'); return; }
                 if (nw !== conf) { Toast.show('Passwords do not match', 'error'); return; }
-                localStorage.setItem('lib_pw', nw);
-                ['currPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
-                Toast.show('Password changed!', 'success');
+
+                try {
+                    const { error } = await _sb
+                        .from('app_users')
+                        .update({ password: nw })
+                        .eq('id', currentUser.id);
+                    if (error) throw error;
+
+                    // Update local object
+                    currentUser.password = nw;
+
+                    ['currPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
+                    Toast.show('Password changed!', 'success');
+                    await DB.addActivity('Password Change', '🔑 Password changed for ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ')');
+                } catch (e) {
+                    Toast.show('Error updating password: ' + e.message, 'error');
+                }
             },
 
             async downloadBackup() {
@@ -3622,7 +3729,7 @@
                     a.href = URL.createObjectURL(blob);
                     a.download = 'apapec_lib_backup_' + U.today() + '.json';
                     a.click();
-                    DB.addActivity('add', '⬇️ System backup downloaded');
+                    await DB.addActivity('Backup', '⬇️ System backup downloaded');
                     Toast.show('Backup downloaded successfully!', 'success');
                 } catch (e) {
                     Toast.show('Backup failed: ' + e.message, 'error');
@@ -3674,7 +3781,7 @@
                                 localStorage.setItem('lib_activity', JSON.stringify(backup.activity));
                             }
 
-                            DB.addActivity('add', '⬆️ Backup restored — ' + booksOk + ' books, ' + studentsOk + ' students, ' + issuesOk + ' issues');
+                            await DB.addActivity('Restore', '⬆️ Backup restored — ' + booksOk + ' books, ' + studentsOk + ' students, ' + issuesOk + ' issues');
                             Toast.show('Restore complete! Books: ' + booksOk + ', Students: ' + studentsOk + ', Issues: ' + issuesOk, 'success');
                             Settings.render();
                             Dashboard.render();
@@ -3702,16 +3809,15 @@
             async confirmReset() {
                 if (!requireRole(['admin'], 'reset the system')) return;
                 const entered = document.getElementById('resetPwInput').value;
-                const stored = localStorage.getItem('lib_pw') || 'admin123';
-                const fg = document.getElementById('resetPwFg');
-
-                if (entered !== stored) {
-                    fg.classList.add('has-error');
+                // Verify against current user's password
+                if (!currentUser) { Toast.show('Not logged in.', 'error'); return; }
+                if (entered !== currentUser.password) {
+                    document.getElementById('resetPwFg').classList.add('has-error');
                     Toast.show('Incorrect password — reset cancelled.', 'error');
                     return;
                 }
 
-                fg.classList.remove('has-error');
+                document.getElementById('resetPwFg').classList.remove('has-error');
                 closeModal('resetModal');
                 document.getElementById('resetPwInput').value = '';
 
@@ -3729,7 +3835,7 @@
                     if (r3.error) throw r3.error;
 
                     localStorage.removeItem('lib_activity');
-                    DB.addActivity('delete', '🔴 System fully reset by administrator');
+                    await DB.addActivity('Reset', '🔴 System fully reset by administrator');
 
                     Toast.show('System reset complete. All data has been erased.', 'success');
                     Settings.render();
@@ -3885,9 +3991,7 @@
 
         document.getElementById('themeToggle').addEventListener('click', () => Theme.toggle());
 
-        /* ═══════════════════════════════════════════════════
-           MODAL HELPERS (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── MODAL HELPERS ─── */
         function openModal(id) { document.getElementById(id)?.classList.add('open'); }
         function closeModal(id) { document.getElementById(id)?.classList.remove('open'); }
         document.querySelectorAll('.modal-overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o) o.classList.remove('open'); }));
@@ -3903,9 +4007,7 @@
 
         function clearFgErrors(modalId) { document.getElementById(modalId)?.querySelectorAll('.fg').forEach(g => g.classList.remove('has-error')); }
 
-        /* ═══════════════════════════════════════════════════
-           MOBILE SIDEBAR (unchanged)
-        ═══════════════════════════════════════════════════ */
+        /* ─── MOBILE SIDEBAR ─── */
         document.getElementById('hamburger').addEventListener('click', () => {
             document.getElementById('sidebar').classList.toggle('open');
             document.getElementById('sidebarBackdrop').classList.toggle('open');
@@ -3923,13 +4025,19 @@
         });
 
         /* ═══════════════════════════════════════════════════
-           INIT (UPDATED – no session check)
+           INIT (UPDATED: runs SSO first)
         ═══════════════════════════════════════════════════ */
-        (function init() {
+        (async function init() {
             Theme.init();
             initSupabase();
-            // 🔁 REMOVED: check for existing session – we always start at login
-            // (You can optionally implement session persistence using localStorage)
+
+            // Try SSO auto-login first
+            const ssoSuccess = await handleSSO();
+            if (!ssoSuccess) {
+                // If no SSO tokens, show normal login screen
+                document.getElementById('authScreen').classList.remove('hidden');
+                document.getElementById('appShell').classList.add('hidden');
+            }
         })();
     </script>
 </body>
