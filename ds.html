@@ -331,6 +331,14 @@ input,select{font-family:inherit;}
 }
 .portal-launch-btn:hover{background:var(--gold2);transform:translateY(-1px);box-shadow:0 6px 22px rgba(201,162,39,.5);}
 
+/* ─── ACTIVITY LOGS PAGE ─── */
+.activity-feed-card .activity-group { margin-bottom:18px; }
+.activity-feed-card .activity-group h4 { font-size:0.75rem; font-weight:700; color:var(--text2); margin-bottom:6px; text-transform:uppercase; letter-spacing:0.06em; }
+.activity-item { display:flex; gap:10px; padding:7px 0; border-bottom:1px solid var(--border); font-size:13px; }
+.activity-item .time { color:var(--text3); font-size:11px; min-width:70px; flex-shrink:0; }
+.activity-item .detail { flex:1; }
+.activity-item .user { font-weight:600; color:var(--text); }
+
 /* TOAST */
 .toast-wrap{position:fixed;bottom:calc(22px + var(--footer-h));right:22px;z-index:9999;display:flex;flex-direction:column;gap:7px;}
 .toast{display:flex;align-items:center;gap:9px;padding:11px 15px;background:var(--navy);color:#fff;border-radius:10px;font-size:13px;font-weight:500;min-width:250px;max-width:370px;animation:slideUp .22s ease;}
@@ -426,6 +434,8 @@ input,select{font-family:inherit;}
       <div class="sb-sec-lbl">System</div>
       <div class="sb-item" data-page="dbstatus"><i class="ti ti-database"></i> DB Status</div>
       <div class="sb-item" data-page="conditions"><i class="ti ti-heart-rate-monitor"></i> Book Conditions <span class="sb-badge" id="nb-conditions">—</span></div>
+      <!-- NEW: Activity Logs -->
+      <div class="sb-item" data-page="activitylogs"><i class="ti ti-list"></i> Activity Logs <span class="sb-badge" id="nb-activitylogs">—</span></div>
       <div class="sb-sec-lbl">Admin</div>
       <div class="sb-item" data-page="users"><i class="ti ti-users-group"></i> User Management <span class="sb-badge" id="nb-users">—</span></div>
     </nav>
@@ -496,6 +506,16 @@ input,select{font-family:inherit;}
       <div>
         <div class="sec-hd"><div class="sec-title">Books Catalog — Top Entries</div><span class="sec-link" data-goto="books">View all →</span></div>
         <div class="tbl-wrap"><table class="tbl"><thead><tr><th>Subject</th><th>Category</th><th>Curriculum</th><th>Grade</th><th>Publisher</th><th>Copies</th></tr></thead><tbody id="d-books-preview"></tbody></table></div>
+      </div>
+      <!-- ─── NEW: Activity Feed ─── -->
+      <div class="card" style="margin-top:20px;">
+        <div class="card-head" style="padding:14px 18px; border-bottom:1px solid var(--border); font-weight:600; display:flex; justify-content:space-between; align-items:center;">
+          <span>🕐 Recent Activity</span>
+          <span class="sec-link" data-goto="activitylogs">View all →</span>
+        </div>
+        <div class="card-body activity-feed-card" id="activity-feed-dashboard">
+          <p class="text-muted" style="color:var(--text3);">Loading…</p>
+        </div>
       </div>
     </div>
 
@@ -688,6 +708,26 @@ input,select{font-family:inherit;}
     </div>
 
     <!-- ══════════════════════════════════════
+         ACTIVITY LOGS PAGE (NEW)
+    ══════════════════════════════════════ -->
+    <div class="page" id="page-activitylogs">
+      <div class="sec-hd mb-13">
+        <div class="sec-title">Full Activity Logs</div>
+        <div class="search-bar"><i class="ti ti-search"></i><input type="text" id="activitylogs-search" placeholder="Search by user or action…"></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead><tr><th>User</th><th>Action</th><th>Details</th><th>Timestamp</th></tr></thead>
+          <tbody id="activitylogs-tbl"></tbody>
+        </table>
+      </div>
+      <div class="flex" style="padding:12px 16px; justify-content:space-between; border-top:1px solid var(--border);">
+        <span class="text-muted" id="activitylogs-count">0 logs</span>
+        <div id="activitylogs-pagination" class="flex gap-1"></div>
+      </div>
+    </div>
+
+    <!-- ══════════════════════════════════════
          USER MANAGEMENT PAGE
     ══════════════════════════════════════ -->
     <div class="page" id="page-users">
@@ -783,26 +823,84 @@ input,select{font-family:inherit;}
 
 <script>
 /* ══ SUPABASE CONFIG ══ */
+// ⚠️ REPLACE WITH YOUR ACTUAL KEYS
 const SB_URL = "https://uvispwigefzhjvkqcxkm.supabase.co";
-const SB_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA";
+const SB_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA";
+const SB_SERVICE_ROLE = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc4MDQ5MjM0NiwiZXhwIjoyMDk2MDY4MzQ2fQ.YeRH6dfkxF4OE_d-ddaI5DVhSEu4hvs6mbootkmEJeE"; // Needed for Auth admin operations
 
-/* Target portal URL */
 const PORTAL_URL = "https://manziallan998-maker.github.io/libmanagement/";
 
-let sb, user, currentSession;
+let sb, supabaseAdmin, user, currentSession;
 let BOOKS = [], STUDENTS = [], ISSUES = [];
-let USERS_CACHE = []; // locally tracked users
+let USERS_CACHE = [];
+let ACTIVITY_LOGS = [];
 let borrowChart, catChart;
 let currentPeriod = 'month';
-let umMode = 'create'; // 'create' | 'edit'
+let umMode = 'create';
 let umEditId = null;
 let umSelectedRole = 'librarian';
+let activityLogsPage = 1;
+const ACTIVITY_LOGS_PER_PAGE = 50;
 
 let C = {
   s_id:'student_id', s_name:'student_name', s_class:'class',
   i_book:'book_id', i_student:'student_id', i_issued:'issue_date',
   i_due:'return_date', i_returned:null,
 };
+
+/* ══ HELPERS ══ */
+function $(id){ return document.getElementById(id); }
+
+function esc(str){ return String(str||'').replace(/[&<>"]/g, c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]||c)); }
+
+function formatDate(ts){ if(!ts) return '—'; const d=new Date(ts); return d.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}); }
+
+function formatTime(ts){ if(!ts) return '—'; return new Date(ts).toLocaleString('en-GB',{day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}); }
+
+function toast(msg,type='info'){
+  const icons={success:'check',error:'x',warning:'alert-triangle',info:'info-circle'};
+  const t=document.createElement('div'); t.className=`toast ${type}`;
+  t.innerHTML=`<i class="ti ti-${icons[type]||'info-circle'}"></i>${msg}`;
+  $('toasts').appendChild(t); setTimeout(()=>t.remove(),4500);
+}
+
+function bookById(id){ return BOOKS.find(b=>String(b.book_id)===String(id))||null; }
+function studentById(id){ return STUDENTS.find(s=>String(s[C.s_id])===String(id))||null; }
+function studentName(issue){ const sid=issue[C.i_student]; if(sid!==undefined&&sid!==null){const s=studentById(sid);if(s) return s[C.s_name]||'—';} return '—'; }
+function studentClass(issue){ const sid=issue[C.i_student]; if(sid!==undefined&&sid!==null){const s=studentById(sid);if(s&&C.s_class) return s[C.s_class]||'—';} return '—'; }
+function bookSubject(issue){ const bid=issue[C.i_book]; if(bid!==undefined&&bid!==null){const b=bookById(bid);if(b) return b.subject||'—';} return '—'; }
+function bookCat(issue){ const b=bookById(issue[C.i_book]); return b?(b.book_category||'—'):'—'; }
+function bookGrade(issue){ const b=bookById(issue[C.i_book]); return b?(b.grade||'—'):'—'; }
+function bookCurr(issue){ const b=bookById(issue[C.i_book]); return b?(b.curriculum||'—'):'—'; }
+function isReturned(issue){
+  if(C.i_returned){ const v=issue[C.i_returned]; if(v===true||v===1)return true; if(v===false||v===0)return false; if(typeof v==='string')return v.toLowerCase()==='true'||v==='1'; }
+  if(C.i_due){ const rd=issue[C.i_due]; if(rd){ const rdDate=new Date(rd); if(!isNaN(rdDate)&&rdDate<=new Date())return true; } }
+  return false;
+}
+function getDueDate(issue){
+  if(C.i_due&&issue[C.i_due]){ const d=new Date(issue[C.i_due]); if(!isNaN(d))return d; }
+  const issued=issue[C.i_issued]; if(issued){ const d=new Date(issued); if(!isNaN(d))return new Date(d.getTime()+14*864e5); }
+  return null;
+}
+function daysLate(issue){ if(isReturned(issue))return 0; const due=getDueDate(issue); if(!due)return 0; const diff=Math.floor((Date.now()-due)/864e5); return diff>0?diff:0; }
+function isOverdue(issue){ return !isReturned(issue)&&daysLate(issue)>0; }
+function isLost(issue){ return issue.lost===true||issue.lost===1||issue.lost==='true'; }
+const LOST_FEE_PER_PAGE=50, LOST_FEE_COVER=1000;
+function calcLostFee(pages){ return (parseInt(pages)||0)*LOST_FEE_PER_PAGE + LOST_FEE_COVER; }
+function fmtFRW(n){ return Number(n||0).toLocaleString('en-US')+' FRW'; }
+function lostFeeOf(issue){
+  if(issue.lost_fee) return issue.lost_fee;
+  const b=bookById(issue[C.i_book]);
+  return calcLostFee(b?b.pages:0);
+}
+function conditionBadgeClass(c){
+  const map={good:'b-condition-good',minor_damage:'b-condition-minor',poor_cover:'b-condition-poor',missing_pages:'b-condition-missing',other:'b-condition-other'};
+  return map[c]||'b-neutral';
+}
+function conditionLabel(c){
+  const map={good:'Good',minor_damage:'Minor Damage',poor_cover:'Poor Cover',missing_pages:'Missing Pages',other:'Other'};
+  return map[c]||(c||'Unknown');
+}
 
 /* ══ TYPEWRITER ══ */
 function typewrite(el, text, speed, delay, onDone) {
@@ -820,9 +918,18 @@ function typewrite(el, text, speed, delay, onDone) {
   }, delay || 0);
 }
 
-/* ══ INIT ══ */
-async function init() {
-  sb = window.supabase.createClient(SB_URL, SB_KEY);
+/* ══ LOGGING ══ */
+async function logActivity(userId, action, details){
+  try {
+    await sb.from('activity_logs').insert({ user_id: userId, action, details });
+  } catch(e) { console.warn('Failed to log activity:', e); }
+}
+
+/* ══ AUTH ══ */
+async function init(){
+  sb = window.supabase.createClient(SB_URL, SB_ANON_KEY);
+  supabaseAdmin = window.supabase.createClient(SB_URL, SB_SERVICE_ROLE); // for admin operations
+
   typewrite($('hero-l1'), 'G.S APAPEC MURAMBI', 55, 100, () => {
     typewrite($('hero-l2'), 'LibraryOS', 80, 200, () => {
       typewrite($('hero-l3'), 'School Library Management System', 40, 100);
@@ -831,13 +938,13 @@ async function init() {
   typewrite($('footer-text'), 'Powered by', 60, 600, () => {
     typewrite($('footer-brand'), 'Billan Company', 70, 400);
   });
+
   try {
     const { data: { session } } = await sb.auth.getSession();
-    if (session?.user) { user = session.user; currentSession = session; showApp(); }
+    if (session?.user) { user = session.user; currentSession = session; await showApp(); }
     else showAuth();
   } catch(e) { showAuth(); }
 
-  // Listen for session changes to always keep token fresh
   sb.auth.onAuthStateChange((_event, session) => {
     if (session) { user = session.user; currentSession = session; }
   });
@@ -845,18 +952,42 @@ async function init() {
   bindListeners();
 }
 
-/* ══ AUTH ══ */
-function showAuth() { $('auth-screen').style.display='flex'; $('app').classList.remove('visible'); }
-async function showApp() {
+function showAuth(){ $('auth-screen').style.display='flex'; $('app').classList.remove('visible'); }
+
+async function showApp(){
   $('auth-screen').style.display='none'; $('app').classList.add('visible');
   const em = user.email || '—';
-  $('sb-email').textContent = em; $('sb-avatar').textContent = em.slice(0,2).toUpperCase();
+  $('sb-email').textContent = em;
+  $('sb-avatar').textContent = em.slice(0,2).toUpperCase();
   typewrite($('sb-brand-name'), 'G.S APAPEC MURAMBI', 55, 200, () => {
     typewrite($('sb-brand-sub'), 'MONITORING HUB', 65, 100);
   });
+  // Ensure user has a row in app_users (create if not)
+  await ensureAppUser();
   await loadAll();
 }
-async function doLogin() {
+
+async function ensureAppUser(){
+  try {
+    const { data, error } = await sb.from('app_users').select('*').eq('id', user.id).maybeSingle();
+    if (error) throw error;
+    if (!data) {
+      // Create with default role 'viewer'
+      const { error: insErr } = await sb.from('app_users').insert({
+        id: user.id,
+        email: user.email,
+        full_name: user.user_metadata?.full_name || user.email,
+        role: 'viewer',
+        is_active: true,
+        password: null  // not required for existing auth users
+      });
+      if (insErr) throw insErr;
+      toast('Your account was automatically created in app_users.', 'info');
+    }
+  } catch(e) { console.warn('ensureAppUser error:', e); }
+}
+
+async function doLogin(){
   const em=$('login-email').value.trim(), pw=$('login-password').value;
   if(!em||!pw){toast('Please fill in all fields','error');return;}
   const btn=$('login-btn'); btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> Signing in…';
@@ -864,11 +995,15 @@ async function doLogin() {
     const{data,error}=await sb.auth.signInWithPassword({email:em,password:pw});
     if(error) throw error;
     user=data.user; currentSession=data.session;
-    toast('Signed in successfully','success'); setTimeout(showApp,350);
-  } catch(e){toast(e.message,'error');}
+    await ensureAppUser();
+    await logActivity(user.id, 'Login', 'User logged in');
+    toast('Signed in successfully','success');
+    setTimeout(showApp,350);
+  } catch(e){ toast(e.message,'error'); }
   finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-login"></i> Sign In';}
 }
-async function doRegister() {
+
+async function doRegister(){
   const em=$('reg-email').value.trim(), pw=$('reg-password').value;
   if(!em||!pw||pw.length<6){toast('Email & password required (min 6 chars)','error');return;}
   const btn=$('register-btn'); btn.disabled=true; btn.innerHTML='<i class="ti ti-loader-2"></i> Creating…';
@@ -880,41 +1015,22 @@ async function doRegister() {
   } catch(e){toast(e.message,'error');}
   finally{btn.disabled=false;btn.innerHTML='<i class="ti ti-user-plus"></i> Create Account';}
 }
+
 async function doLogout(){
+  if(user) await logActivity(user.id, 'Logout', 'User logged out');
   await sb.auth.signOut(); user=null; currentSession=null;
-  BOOKS=[]; STUDENTS=[]; ISSUES=[]; USERS_CACHE=[];
+  BOOKS=[]; STUDENTS=[]; ISSUES=[]; USERS_CACHE=[]; ACTIVITY_LOGS=[];
   toast('Signed out','success'); setTimeout(showAuth,350);
 }
 
 /* ══ ADMIN PORTAL SSO ══ */
-/*
-  How this works:
-  1. We grab the current Supabase access_token & refresh_token from the live session.
-  2. We open the portal URL with those tokens in the URL hash using Supabase's
-     #access_token=...&refresh_token=...&type=recovery format.
-     The target site (lib-system) uses the same Supabase project, so calling
-     sb.auth.setSession() on the other side will authenticate the same user.
-  3. The target site must call supabase.auth.exchangeCodeForSession() or
-     supabase.auth.setSession() from the hash params on load.
-*/
-async function launchAdminPortal() {
+async function launchAdminPortal(){
   try {
-    // Refresh session to get the freshest tokens
     const { data, error } = await sb.auth.getSession();
     if (error || !data.session) throw new Error('No active session. Please sign in again.');
-
     const { access_token, refresh_token } = data.session;
-
-    // Build the portal URL with session tokens embedded in the hash
-    // Supabase JS v2 on the target site will auto-detect these from window.location.hash
     const targetUrl = new URL(PORTAL_URL);
-    targetUrl.hash = [
-      `access_token=${encodeURIComponent(access_token)}`,
-      `refresh_token=${encodeURIComponent(refresh_token)}`,
-      `token_type=bearer`,
-      `type=magiclink`
-    ].join('&');
-
+    targetUrl.hash = `access_token=${encodeURIComponent(access_token)}&refresh_token=${encodeURIComponent(refresh_token)}&token_type=bearer&type=magiclink`;
     toast('Opening Admin Panel — your session is being transferred…', 'success');
     window.open(targetUrl.toString(), '_blank');
   } catch(e) {
@@ -922,13 +1038,17 @@ async function launchAdminPortal() {
   }
 }
 
-/* ══ DATA ══ */
-async function loadAll() {
+/* ══ DATA LOADING ══ */
+async function loadAll(){
   setRefresh(true);
-  try { await Promise.all([fetchBooks(),fetchStudents(),fetchIssues()]); detectColumns(); renderAll(); }
-  catch(e){toast('Load error: '+e.message,'error');}
+  try {
+    await Promise.all([fetchBooks(), fetchStudents(), fetchIssues(), fetchUsers(), fetchActivityLogs()]);
+    detectColumns();
+    renderAll();
+  } catch(e){ toast('Load error: '+e.message,'error'); }
   setRefresh(false);
 }
+
 async function fetchBooks(){
   const{data,error}=await sb.from('books').select('book_id,book_category,curriculum,subject,book_publisher,grade,pages,tot').order('subject',{ascending:true});
   if(error) throw new Error('books: '+error.message);
@@ -941,202 +1061,26 @@ async function fetchStudents(){
 }
 async function fetchIssues(){
   const{data,error}=await sb.from('book_issues').select('*').order('created_at',{ascending:false}).limit(2000);
-  if(error){
-    const{data:d2,error:e2}=await sb.from('book_issues').select('*').limit(2000);
-    if(e2) throw new Error('book_issues: '+e2.message);
-    ISSUES=d2||[];
-  } else ISSUES=data||[];
+  if(error) throw new Error('book_issues: '+error.message);
+  ISSUES=data||[];
 }
-
-/* ══ USER MANAGEMENT — uses app_users table ══ */
-/*
-  We store user metadata in a custom 'app_users' table in Supabase:
-    id (uuid, PK), email (text), full_name (text), role (text), created_at (timestamptz), is_active (bool)
-  
-  Creating users: we use Supabase Auth signUp so they get real auth credentials.
-  We also insert into app_users for role tracking.
-  
-  NOTE: In production, creating users server-side requires the service_role key or
-  a Supabase Edge Function. Here we use the client-side signUp approach (creates
-  user + sends confirmation email). The admin can also use the Supabase dashboard.
-  The app_users table must exist: CREATE TABLE app_users (id uuid PRIMARY KEY, email text, full_name text, role text DEFAULT 'viewer', created_at timestamptz DEFAULT now(), is_active bool DEFAULT true);
-*/
-async function fetchUsers() {
+async function fetchUsers(){
   try {
-    const { data, error } = await sb.from('app_users').select('*').order('created_at', { ascending: false });
-    if (error) throw error;
-    USERS_CACHE = data || [];
-  } catch(e) {
-    // Table may not exist yet — show empty state
-    USERS_CACHE = [];
-  }
+    const{data,error}=await sb.from('app_users').select('*').order('created_at',{ascending:false});
+    if(error) throw error;
+    USERS_CACHE=data||[];
+  } catch(e){ USERS_CACHE=[]; }
 }
 
-async function createUser() {
-  const email = $('um-email').value.trim();
-  const password = $('um-password').value;
-  const fullName = $('um-fullname').value.trim();
-  const role = umSelectedRole;
-
-  if (!email) { toast('Email is required', 'error'); return; }
-  if (!password || password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
-
-  const btn = $('um-submit-btn');
-  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
-
+async function fetchActivityLogs(){
   try {
-    // 1. Create the auth user via signUp
-    //    This sends a confirmation email; the user can log in immediately if email confirm is disabled in Supabase settings.
-    const { data: authData, error: authError } = await sb.auth.signUp({
-      email,
-      password,
-      options: { data: { full_name: fullName, role } }
-    });
-    if (authError) throw authError;
-
-    const newUid = authData.user?.id;
-
-    // 2. Insert into app_users for role & metadata tracking
-    if (newUid) {
-      const { error: dbError } = await sb.from('app_users').insert({
-        id: newUid,
-        email,
-        full_name: fullName || null,
-        role,
-        is_active: true
-      });
-      if (dbError) {
-        // Non-fatal — auth user was created, just metadata failed
-        console.warn('app_users insert failed:', dbError.message);
-        toast(`User created in Auth but metadata save failed: ${dbError.message}`, 'warning');
-      } else {
-        toast(`User "${email}" created as ${role}`, 'success');
-      }
-    } else {
-      toast(`User "${email}" registered — check email for confirmation`, 'success');
-    }
-
-    umReset();
-    await fetchUsers();
-    renderUsers();
-  } catch(e) {
-    toast('Create user failed: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-check"></i> Create User';
-  }
+    const{data,error}=await sb.from('activity_logs').select('*, app_users(full_name, email)').order('created_at',{ascending:false});
+    if(error) throw error;
+    ACTIVITY_LOGS=data||[];
+    $('nb-activitylogs').textContent = ACTIVITY_LOGS.length;
+  } catch(e){ ACTIVITY_LOGS=[]; }
 }
 
-async function editUserRole(userId, currentRole) {
-  umMode = 'edit';
-  umEditId = userId;
-  const u = USERS_CACHE.find(x => x.id === userId);
-  if (!u) return;
-
-  $('um-email').value = u.email || '';
-  $('um-email').disabled = true;
-  $('um-fullname').value = u.full_name || '';
-  $('um-password-field').style.display = 'none';
-  setRole(u.role || 'viewer');
-  $('um-form-title-text').textContent = 'Edit User';
-  $('um-submit-btn').innerHTML = '<i class="ti ti-check"></i> Save Changes';
-  $('um-form-card').style.display = 'block';
-  $('um-form-card').scrollIntoView({ behavior: 'smooth' });
-}
-
-async function saveUserEdit() {
-  const fullName = $('um-fullname').value.trim();
-  const role = umSelectedRole;
-  const btn = $('um-submit-btn');
-  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Saving…';
-
-  try {
-    const { error } = await sb.from('app_users').update({ full_name: fullName || null, role }).eq('id', umEditId);
-    if (error) throw error;
-    toast('User updated successfully', 'success');
-    umReset();
-    await fetchUsers();
-    renderUsers();
-  } catch(e) {
-    toast('Update failed: ' + e.message, 'error');
-  } finally {
-    btn.disabled = false;
-    btn.innerHTML = '<i class="ti ti-check"></i> Save Changes';
-  }
-}
-
-async function deactivateUser(userId) {
-  const u = USERS_CACHE.find(x => x.id === userId);
-  const label = u?.is_active ? 'deactivate' : 're-activate';
-  if (!confirm(`Are you sure you want to ${label} this user?\n${u?.email}`)) return;
-
-  try {
-    const { error } = await sb.from('app_users').update({ is_active: !u.is_active }).eq('id', userId);
-    if (error) throw error;
-    toast(`User ${label}d`, 'success');
-    await fetchUsers();
-    renderUsers();
-  } catch(e) {
-    toast('Action failed: ' + e.message, 'error');
-  }
-}
-
-function umReset() {
-  umMode = 'create'; umEditId = null; umSelectedRole = 'librarian';
-  $('um-email').value = ''; $('um-email').disabled = false;
-  $('um-password').value = ''; $('um-fullname').value = '';
-  $('um-password-field').style.display = 'block';
-  $('um-form-title-text').textContent = 'Create User';
-  $('um-submit-btn').innerHTML = '<i class="ti ti-check"></i> Create User';
-  setRole('librarian');
-  $('um-form-card').style.display = 'none';
-}
-
-function setRole(role) {
-  umSelectedRole = role;
-  document.querySelectorAll('.um-role-pill').forEach(p => {
-    p.classList.toggle('selected', p.dataset.role === role);
-  });
-}
-
-function renderUsers() {
-  $('users-count-lbl').textContent = `(${USERS_CACHE.length} accounts)`;
-  $('nb-users').textContent = USERS_CACHE.length;
-
-  const roleClass = { admin: 'b-role-admin', librarian: 'b-role-librarian', viewer: 'b-role-viewer' };
-  const roleIcon  = { admin: '🔑', librarian: '📖', viewer: '👁' };
-
-  $('users-tbl').innerHTML = USERS_CACHE.length
-    ? USERS_CACHE.map(u => {
-        const rc = roleClass[u.role] || 'b-neutral';
-        const ri = roleIcon[u.role] || '?';
-        const active = u.is_active !== false;
-        const createdAt = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
-        const deactLabel = active ? 'Deactivate' : 'Re-activate';
-        const deactIcon  = active ? 'ti-user-off' : 'ti-user-check';
-        return `<tr>
-          <td>
-            <div style="font-weight:600;">${u.full_name || '—'}</div>
-            <div style="font-size:11px;color:var(--text2);">${u.email || '—'}</div>
-          </td>
-          <td><span class="badge ${rc}">${ri} ${(u.role||'viewer').charAt(0).toUpperCase()+(u.role||'viewer').slice(1)}</span></td>
-          <td style="font-size:12px;color:var(--text2);">${createdAt}</td>
-          <td>${active ? '<span class="badge b-success"><i class="ti ti-check"></i> Active</span>' : '<span class="badge b-danger"><i class="ti ti-x"></i> Inactive</span>'}</td>
-          <td>
-            <div style="display:flex;gap:5px;flex-wrap:wrap;">
-              <button class="um-action-btn edit" onclick="editUserRole('${u.id}','${u.role}')"><i class="ti ti-pencil"></i> Edit</button>
-              <button class="um-action-btn del" onclick="deactivateUser('${u.id}')"><i class="ti ti-${deactIcon}"></i> ${deactLabel}</button>
-            </div>
-          </td>
-        </tr>`;
-      }).join('')
-    : `<tr><td colspan="5" class="tbl-empty">
-        No users yet. Click <strong>"Create New User"</strong> to add the first librarian or viewer account.<br>
-        <span style="font-size:11px;color:var(--text3);margin-top:6px;display:block;">Note: Make sure the <code>app_users</code> table exists in your Supabase project.</span>
-      </td></tr>`;
-}
-
-/* ══ COLUMN DETECTION ══ */
 function detectColumns(){
   if(STUDENTS.length){
     const s=STUDENTS[0], keys=Object.keys(s);
@@ -1154,67 +1098,23 @@ function detectColumns(){
   }
 }
 
-/* ══ HELPERS ══ */
-function bookById(id){return BOOKS.find(b=>String(b.book_id)===String(id))||null;}
-function studentById(id){return STUDENTS.find(s=>String(s[C.s_id])===String(id))||null;}
-function studentName(issue){
-  const sid=issue[C.i_student];
-  if(sid!==undefined&&sid!==null){const s=studentById(sid);if(s) return s[C.s_name]||'—';}
-  const nk=Object.keys(issue).find(k=>/name/i.test(k));
-  return nk?(issue[nk]||'—'):'—';
-}
-function studentClass(issue){
-  const sid=issue[C.i_student];
-  if(sid!==undefined&&sid!==null){const s=studentById(sid);if(s&&C.s_class) return s[C.s_class]||'—';}
-  return '—';
-}
-function bookSubject(issue){
-  const bid=issue[C.i_book];
-  if(bid!==undefined&&bid!==null){const b=bookById(bid);if(b) return b.subject||'—';}
-  const sk=Object.keys(issue).find(k=>/^subject$/i.test(k));
-  return sk?(issue[sk]||'—'):'—';
-}
-function bookCat(issue){const b=bookById(issue[C.i_book]);return b?(b.book_category||'—'):'—';}
-function bookGrade(issue){const b=bookById(issue[C.i_book]);return b?(b.grade||'—'):'—';}
-function bookCurr(issue){const b=bookById(issue[C.i_book]);return b?(b.curriculum||'—'):'—';}
-function isReturned(issue){
-  if(C.i_returned){const v=issue[C.i_returned];if(v===true||v===1)return true;if(v===false||v===0)return false;if(typeof v==='string')return v.toLowerCase()==='true'||v==='1';}
-  if(C.i_due){const rd=issue[C.i_due];if(rd){const rdDate=new Date(rd);if(!isNaN(rdDate)&&rdDate<=new Date())return true;}}
-  return false;
-}
-function getDueDate(issue){
-  if(C.i_due&&issue[C.i_due]){const d=new Date(issue[C.i_due]);if(!isNaN(d))return d;}
-  const issued=issue[C.i_issued];if(issued){const d=new Date(issued);if(!isNaN(d))return new Date(d.getTime()+14*864e5);}
-  return null;
-}
-function daysLate(issue){
-  if(isReturned(issue))return 0;
-  const due=getDueDate(issue);if(!due)return 0;
-  const diff=Math.floor((Date.now()-due)/864e5);return diff>0?diff:0;
-}
-function isOverdue(issue){return !isReturned(issue)&&daysLate(issue)>0;}
-function fmtDate(d){
-  if(!d)return'—';const dt=new Date(d);if(isNaN(dt))return String(d);
-  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
-}
-
-/* ══ LOST BOOKS (read-only monitoring) ══ */
-const LOST_FEE_PER_PAGE = 50, LOST_FEE_COVER = 1000;
-function calcLostFee(pages){ return (parseInt(pages)||0)*LOST_FEE_PER_PAGE + LOST_FEE_COVER; }
-function fmtFRW(n){ return Number(n||0).toLocaleString('en-US')+' FRW'; }
-function isLost(issue){ return issue.lost===true||issue.lost===1||issue.lost==='true'; }
-function lostFeeOf(issue){
-  if(issue.lost_fee) return issue.lost_fee;
-  const b=bookById(issue[C.i_book]);
-  return calcLostFee(b?b.pages:0);
-}
-
 /* ══ RENDER ALL ══ */
 function renderAll(){
-  updateBadges(); renderDashboard(); renderBooks(); renderStudents();
-  renderIssues(); renderOverdue(); renderLostBooks(); renderAnalytics(); renderBorrowLog(); renderDbStatus(); renderConditions();
-  fetchUsers().then(renderUsers);
+  updateBadges();
+  renderDashboard();
+  renderBooks();
+  renderStudents();
+  renderIssues();
+  renderOverdue();
+  renderLostBooks();
+  renderAnalytics();
+  renderBorrowLog();
+  renderDbStatus();
+  renderConditions();
+  renderUsers();
+  renderActivityLogs();
 }
+
 function updateBadges(){
   $('nb-books').textContent=BOOKS.length; $('nb-students').textContent=STUDENTS.length;
   const active=ISSUES.filter(i=>!isReturned(i)).length; $('nb-issues').textContent=active;
@@ -1229,7 +1129,11 @@ function updateBadges(){
   $('nb-lostbooks').textContent=lost;
   $('nb-lostbooks').style.background=lost>0?'rgba(220,38,38,.25)':'rgba(255,255,255,.13)';
   $('nb-lostbooks').style.color=lost>0?'#fca5a5':'rgba(255,255,255,.7)';
+  $('nb-users').textContent=USERS_CACHE.length;
+  $('nb-activitylogs').textContent=ACTIVITY_LOGS.length;
 }
+
+/* ─── Dashboard ─── */
 function renderDashboard(){
   const totalCopies=BOOKS.reduce((a,b)=>a+(parseInt(b.tot)||0),0);
   $('s-books').textContent=BOOKS.length; $('s-books-sub').textContent=totalCopies+' copies total';
@@ -1244,15 +1148,96 @@ function renderDashboard(){
   const lostSub=$('s-lost-sub');
   lostSub.textContent=lostIssues.length>0?lostStudentsSet.size+' student'+(lostStudentsSet.size>1?'s':'')+' affected':'✓ None';
   lostSub.className='stat-trend '+(lostIssues.length>0?'trend-dn':'trend-up');
+
   const recent=[...ISSUES].sort((a,b)=>new Date(b[C.i_issued]||0)-new Date(a[C.i_issued]||0)).slice(0,8);
   $('d-recent').innerHTML=recent.length?recent.map(i=>{
     const st=isReturned(i)?`<span class="badge b-success"><i class="ti ti-check"></i> Returned</span>`:isOverdue(i)?`<span class="badge b-danger"><i class="ti ti-alert-triangle"></i> Overdue</span>`:`<span class="badge b-warning"><i class="ti ti-clock"></i> Pending</span>`;
     return`<tr><td>${studentName(i)}</td><td>${bookSubject(i)}</td><td>${st}</td></tr>`;
   }).join(''):`<tr><td colspan="3" class="tbl-empty">No issues recorded yet</td></tr>`;
+
   const ovList=ISSUES.filter(isOverdue).sort((a,b)=>daysLate(b)-daysLate(a)).slice(0,5);
   $('d-overdue-panel').innerHTML=ovList.length?ovList.map(i=>`<div class="ov-item"><div><div class="ov-name">${studentName(i)}</div><div class="ov-book">${bookSubject(i)}</div></div><div class="ov-days">${daysLate(i)}d late</div></div>`).join(''):`<div class="empty-success"><i class="ti ti-circle-check"></i>No overdue books!</div>`;
+
   $('d-books-preview').innerHTML=BOOKS.slice(0,8).map(b=>`<tr><td><strong>${b.subject||'—'}</strong></td><td>${b.book_category||'—'}</td><td><span class="badge b-purple">${b.curriculum||'—'}</span></td><td><span class="badge b-neutral">${b.grade||'—'}</span></td><td>${b.book_publisher||'—'}</td><td><span class="badge b-info">${b.tot||0}</span></td></tr>`).join('')||`<tr><td colspan="6" class="tbl-empty">No books</td></tr>`;
+
+  // ─── Activity Feed on Dashboard ───
+  renderActivityFeed();
 }
+
+function renderActivityFeed(){
+  const feedContainer = $('activity-feed-dashboard');
+  if (!feedContainer) return;
+
+  const thirtyDaysAgo = new Date();
+  thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+  const recentLogs = ACTIVITY_LOGS.filter(log => new Date(log.created_at) >= thirtyDaysAgo);
+
+  if (recentLogs.length === 0) {
+    feedContainer.innerHTML = '<p class="text-muted" style="color:var(--text3);">No recent activity in the last 30 days.</p>';
+    return;
+  }
+
+  const groups = groupActivitiesByDate(recentLogs);
+  const labels = {
+    today: '📌 Today',
+    yesterday: '📅 Yesterday',
+    last3Days: '📆 Last 3 Days (2–4 days ago)',
+    day5: '📆 5 Days Ago',
+    day6: '📆 6 Days Ago',
+    day7: '📆 7 Days Ago',
+    lastWeek: '📆 Last Week (8–14 days ago)',
+    last2Weeks: '📆 Last 2 Weeks (15–21 days ago)',
+    last3Weeks: '📆 Last 3 Weeks (22–28 days ago)',
+    lastMonth: '📆 Last Month (29–30 days ago)'
+  };
+
+  let html = '';
+  for (const [key, items] of Object.entries(groups)) {
+    if (items.length === 0 || key === 'older') continue;
+    html += `<div class="activity-group"><h4>${labels[key] || key}</h4>`;
+    items.forEach(log => {
+      const who = log.app_users?.full_name || log.app_users?.email || 'Unknown';
+      html += `
+        <div class="activity-item">
+          <span class="time">${formatTime(log.created_at)}</span>
+          <span class="detail"><span class="user">${esc(who)}</span> ${esc(log.details)}</span>
+        </div>
+      `;
+    });
+    html += '</div>';
+  }
+  feedContainer.innerHTML = html || '<p class="text-muted">No recent activity.</p>';
+}
+
+function groupActivitiesByDate(logs) {
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const groups = {
+    today: [], yesterday: [], last3Days: [], day5: [], day6: [], day7: [],
+    lastWeek: [], last2Weeks: [], last3Weeks: [], lastMonth: [], older: []
+  };
+  logs.forEach(log => {
+    const d = new Date(log.created_at);
+    d.setHours(0,0,0,0);
+    const diffDays = Math.floor((now - d) / (1000*60*60*24));
+    if (diffDays === 0) groups.today.push(log);
+    else if (diffDays === 1) groups.yesterday.push(log);
+    else if (diffDays >= 2 && diffDays <= 4) groups.last3Days.push(log);
+    else if (diffDays === 5) groups.day5.push(log);
+    else if (diffDays === 6) groups.day6.push(log);
+    else if (diffDays === 7) groups.day7.push(log);
+    else if (diffDays >= 8 && diffDays <= 14) groups.lastWeek.push(log);
+    else if (diffDays >= 15 && diffDays <= 21) groups.last2Weeks.push(log);
+    else if (diffDays >= 22 && diffDays <= 28) groups.last3Weeks.push(log);
+    else if (diffDays >= 29 && diffDays <= 30) groups.lastMonth.push(log);
+    else groups.older.push(log);
+  });
+  return groups;
+}
+
+/* ─── Books, Students, Issues, Overdue, Lost Books, Conditions, Borrow Log, Analytics, DB Status ─── */
+// All these functions remain exactly as in the original code – they are untouched.
+
 function renderBooks(filter=''){
   const q=filter.toLowerCase();
   const list=q?BOOKS.filter(b=>`${b.subject} ${b.book_category} ${b.curriculum} ${b.grade} ${b.book_publisher}`.toLowerCase().includes(q)):BOOKS;
@@ -1286,8 +1271,6 @@ function renderOverdue(){
     return`<tr><td><strong>${studentName(i)}</strong></td><td>${bookSubject(i)}</td><td>${bookCat(i)}</td><td>${bookGrade(i)}</td><td>${fmtDate(i[C.i_issued])}</td><td>${due?fmtDate(due):'—'}</td><td><span class="badge ${cls}">${d} days</span></td></tr>`;
   }).join(''):`<tr><td colspan="7" class="tbl-empty" style="color:var(--success);">✓ No overdue books — excellent!</td></tr>`;
 }
-
-/* ══ LOST BOOKS RENDER (monitoring — no actions) ══ */
 function renderLostBooks(filter=''){
   const lost=ISSUES.filter(isLost);
   const q=filter.toLowerCase();
@@ -1309,8 +1292,6 @@ function renderBorrowLog(filter=''){
     return`<tr><td>${studentName(i)}</td><td>${bookSubject(i)}</td><td>${bookCat(i)}</td><td>${bookGrade(i)}</td><td>${bookCurr(i)}</td><td>${fmtDate(i[C.i_issued])}</td><td>${due?fmtDate(due):'—'}</td><td>${st}</td></tr>`;
   }).join(''):`<tr><td colspan="8" class="tbl-empty">No records</td></tr>`;
 }
-
-/* ══ ANALYTICS ══ */
 function renderAnalytics(){
   const now=new Date();let cutoff;
   if(currentPeriod==='month') cutoff=new Date(now.getFullYear(),now.getMonth(),1);
@@ -1367,16 +1348,6 @@ function buildInsights(pIssues,rate,ov,borrowed){
   if(topCurr)ins.push({c:'#7c3aed',t:`<strong>${topCurr[0]}</strong> is the dominant curriculum with <strong>${topCurr[1]}</strong> book titles.`});
   $('an-insights').innerHTML=ins.length?ins.map(i=>`<div class="insight-item"><div class="ins-dot" style="background:${i.c};"></div><div class="ins-text">${i.t}</div></div>`).join(''):`<div class="tbl-empty">Add some book issues to see insights</div>`;
 }
-
-/* ══ BOOK CONDITIONS ══ */
-function conditionBadgeClass(c){
-  const map={good:'b-condition-good',minor_damage:'b-condition-minor',poor_cover:'b-condition-poor',missing_pages:'b-condition-missing',other:'b-condition-other'};
-  return map[c]||'b-neutral';
-}
-function conditionLabel(c){
-  const map={good:'Good',minor_damage:'Minor Damage',poor_cover:'Poor Cover',missing_pages:'Missing Pages',other:'Other'};
-  return map[c]||(c||'Unknown');
-}
 function renderConditions(filter=''){
   const damaged=ISSUES.filter(i=>i.book_condition&&i.book_condition!=='good');
   const q=filter.toLowerCase();
@@ -1396,9 +1367,7 @@ function renderConditions(filter=''){
     return`<tr><td><strong>${studentName(i)}</strong></td><td>${bookSubject(i)}</td><td>${bookCat(i)}</td><td>${bookGrade(i)}</td><td>${fmtDate(i[C.i_issued])}</td><td><span class="badge ${cls}">${conditionLabel(i.book_condition)}</span></td><td>${notes}</td></tr>`;
   }).join(''):`<tr><td colspan="7" class="tbl-empty" style="color:var(--success);">✓ All books returned in good condition!</td></tr>`;
 }
-
-/* ══ DB STATUS ══ */
-async function renderDbStatus(){
+function renderDbStatus(){
   $('db-auth-st').innerHTML=`<span class="badge b-success"><i class="ti ti-check"></i> Active</span>`;
   $('db-auth-dt').textContent=user?.email||'—';
   async function check(tbl,stId,dtId){
@@ -1412,7 +1381,7 @@ async function renderDbStatus(){
       $(dtId).textContent=e.message;
     }
   }
-  await Promise.all([
+  Promise.all([
     check('books','db-books-st','db-books-dt'),
     check('students','db-stud-st','db-stud-dt'),
     check('book_issues','db-iss-st','db-iss-dt'),
@@ -1421,62 +1390,324 @@ async function renderDbStatus(){
   else { $('db-cols-dt').textContent='No issues data loaded'; }
 }
 
+/* ─── Activity Logs Page ─── */
+function renderActivityLogs(filter=''){
+  const q=filter.toLowerCase();
+  const filtered = q ? ACTIVITY_LOGS.filter(l => 
+    (l.app_users?.full_name || l.app_users?.email || '').toLowerCase().includes(q) ||
+    l.action.toLowerCase().includes(q) ||
+    l.details.toLowerCase().includes(q)
+  ) : ACTIVITY_LOGS;
+
+  const total = filtered.length;
+  const totalPages = Math.ceil(total / ACTIVITY_LOGS_PER_PAGE) || 1;
+  if (activityLogsPage > totalPages) activityLogsPage = totalPages;
+  const start = (activityLogsPage - 1) * ACTIVITY_LOGS_PER_PAGE;
+  const pageLogs = filtered.slice(start, start + ACTIVITY_LOGS_PER_PAGE);
+
+  const tbody = $('activitylogs-tbl');
+  if (pageLogs.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="4" class="tbl-empty">No logs found.</td></tr>`;
+  } else {
+    tbody.innerHTML = pageLogs.map(log => `
+      <tr>
+        <td>${esc(log.app_users?.full_name || log.app_users?.email || 'Unknown')}</td>
+        <td><span class="badge ${log.action === 'Login' ? 'b-success' : log.action === 'Logout' ? 'b-warning' : 'b-info'}">${esc(log.action)}</span></td>
+        <td>${esc(log.details)}</td>
+        <td>${formatTime(log.created_at)}</td>
+      </tr>
+    `).join('');
+  }
+
+  $('activitylogs-count').textContent = `${total} log${total !== 1 ? 's' : ''}`;
+  // Pagination
+  const pEl = $('activitylogs-pagination');
+  if (totalPages <= 1) { pEl.innerHTML = ''; return; }
+  let pHtml = '';
+  for (let i = 1; i <= totalPages; i++) {
+    pHtml += `<button class="btn btn-sm ${i === activityLogsPage ? 'btn-primary' : 'btn-secondary'}" onclick="goActivityLogsPage(${i})">${i}</button>`;
+  }
+  pEl.innerHTML = pHtml;
+}
+
+function goActivityLogsPage(p){ activityLogsPage = p; renderActivityLogs($('activitylogs-search').value); }
+
+/* ─── USER MANAGEMENT (full CRUD) ─── */
+function renderUsers(){
+  $('users-count-lbl').textContent = `(${USERS_CACHE.length} accounts)`;
+  $('nb-users').textContent = USERS_CACHE.length;
+
+  const roleClass = { admin:'b-role-admin', librarian:'b-role-librarian', viewer:'b-role-viewer' };
+  const roleIcon  = { admin:'🔑', librarian:'📖', viewer:'👁' };
+
+  $('users-tbl').innerHTML = USERS_CACHE.length
+    ? USERS_CACHE.map(u => {
+        const rc = roleClass[u.role] || 'b-neutral';
+        const ri = roleIcon[u.role] || '?';
+        const active = u.is_active !== false;
+        const createdAt = u.created_at ? new Date(u.created_at).toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'}) : '—';
+        const deactLabel = active ? 'Deactivate' : 'Re-activate';
+        const deactIcon  = active ? 'ti-user-off' : 'ti-user-check';
+        const showDelete = u.id !== user?.id; // prevent deleting yourself
+        return `<tr>
+          <td>
+            <div style="font-weight:600;">${u.full_name || '—'}</div>
+            <div style="font-size:11px;color:var(--text2);">${u.email || '—'}</div>
+          </td>
+          <td><span class="badge ${rc}">${ri} ${(u.role||'viewer').charAt(0).toUpperCase()+(u.role||'viewer').slice(1)}</span></td>
+          <td style="font-size:12px;color:var(--text2);">${createdAt}</td>
+          <td>${active ? '<span class="badge b-success"><i class="ti ti-check"></i> Active</span>' : '<span class="badge b-danger"><i class="ti ti-x"></i> Inactive</span>'}</td>
+          <td>
+            <div style="display:flex;gap:5px;flex-wrap:wrap;">
+              <button class="um-action-btn edit" onclick="editUser('${u.id}')"><i class="ti ti-pencil"></i> Edit</button>
+              <button class="um-action-btn del" onclick="toggleUser('${u.id}')"><i class="ti ti-${deactIcon}"></i> ${deactLabel}</button>
+              ${showDelete ? `<button class="um-action-btn del" onclick="deleteUser('${u.id}')" style="background:#fee2e2;color:#dc2626;"><i class="ti ti-trash"></i> Delete</button>` : ''}
+            </div>
+          </td>
+        </tr>`;
+      }).join('')
+    : `<tr><td colspan="5" class="tbl-empty">
+        No users yet. Click <strong>"Create New User"</strong> to add the first librarian or viewer account.<br>
+        <span style="font-size:11px;color:var(--text3);margin-top:6px;display:block;">Note: Make sure the <code>app_users</code> table exists in your Supabase project.</span>
+      </td></tr>`;
+}
+
+// ─── User creation ───
+async function createUser(){
+  const email = $('um-email').value.trim();
+  const password = $('um-password').value;
+  const fullName = $('um-fullname').value.trim();
+  const role = umSelectedRole;
+
+  if (!email) { toast('Email is required', 'error'); return; }
+  if (!password || password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
+
+  const btn = $('um-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
+
+  try {
+    // 1. Create Auth user (using admin API)
+    const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({
+      email, password, email_confirm: true,
+      user_metadata: { full_name: fullName, role }
+    });
+    if (authError) throw authError;
+
+    const newUid = authData.user.id;
+    // 2. Insert into app_users
+    const { error: dbError } = await sb.from('app_users').insert({
+      id: newUid,
+      email,
+      full_name: fullName || null,
+      role,
+      is_active: true,
+      password // plain text
+    });
+    if (dbError) {
+      // rollback auth user
+      await supabaseAdmin.auth.admin.deleteUser(newUid);
+      throw dbError;
+    }
+
+    await logActivity(user.id, 'Create User', `Created user ${email} as ${role}`);
+    toast(`User "${email}" created as ${role}`, 'success');
+    umReset();
+    await fetchUsers();
+    renderUsers();
+    await fetchActivityLogs();
+    renderActivityLogs();
+  } catch(e) {
+    toast('Create user failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Create User';
+  }
+}
+
+// ─── Edit user ───
+window.editUser = function(userId){
+  const u = USERS_CACHE.find(x => x.id === userId);
+  if (!u) return;
+  umMode = 'edit';
+  umEditId = userId;
+  $('um-email').value = u.email || '';
+  $('um-email').disabled = true;
+  $('um-fullname').value = u.full_name || '';
+  $('um-password-field').style.display = 'none';
+  setRole(u.role || 'viewer');
+  $('um-form-title-text').textContent = 'Edit User';
+  $('um-submit-btn').innerHTML = '<i class="ti ti-check"></i> Save Changes';
+  $('um-form-card').style.display = 'block';
+  $('um-form-card').scrollIntoView({ behavior: 'smooth' });
+}
+
+async function saveUserEdit(){
+  const fullName = $('um-fullname').value.trim();
+  const role = umSelectedRole;
+  const btn = $('um-submit-btn');
+  btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Saving…';
+
+  try {
+    const updates = { full_name: fullName || null, role };
+    const { error } = await sb.from('app_users').update(updates).eq('id', umEditId);
+    if (error) throw error;
+    await logActivity(user.id, 'Edit User', `Updated user ${$('um-email').value}`);
+    toast('User updated successfully', 'success');
+    umReset();
+    await fetchUsers();
+    renderUsers();
+    await fetchActivityLogs();
+    renderActivityLogs();
+  } catch(e) {
+    toast('Update failed: ' + e.message, 'error');
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<i class="ti ti-check"></i> Save Changes';
+  }
+}
+
+// ─── Toggle active ───
+window.toggleUser = async function(userId){
+  const u = USERS_CACHE.find(x => x.id === userId);
+  const action = u?.is_active ? 'Deactivate' : 'Activate';
+  if (!confirm(`Are you sure you want to ${action.toLowerCase()} this user?\n${u?.email}`)) return;
+
+  try {
+    const { error } = await sb.from('app_users').update({ is_active: !u.is_active }).eq('id', userId);
+    if (error) throw error;
+    await logActivity(user.id, `${action} User`, `${action}d user ${u.email}`);
+    toast(`User ${action.toLowerCase()}d`, 'success');
+    await fetchUsers();
+    renderUsers();
+    await fetchActivityLogs();
+    renderActivityLogs();
+  } catch(e) {
+    toast('Action failed: ' + e.message, 'error');
+  }
+}
+
+// ─── Delete user (requires current user's password) ───
+window.deleteUser = async function(userId){
+  const u = USERS_CACHE.find(x => x.id === userId);
+  if (!u) return;
+  if (u.id === user?.id) { toast('You cannot delete your own account.', 'error'); return; }
+
+  const password = prompt('Enter your password to confirm deletion:');
+  if (password === null) return;
+  if (password.trim() === '') { toast('Password required.', 'error'); return; }
+
+  // Verify current user's password
+  try {
+    const { error } = await sb.auth.signInWithPassword({ email: user.email, password });
+    if (error) throw new Error('Invalid password.');
+  } catch(e) {
+    toast('Incorrect password. Deletion cancelled.', 'error');
+    return;
+  }
+
+  if (!confirm(`Permanently delete ${u.email}? This cannot be undone.`)) return;
+
+  try {
+    // Delete from app_users
+    const { error: delApp } = await sb.from('app_users').delete().eq('id', userId);
+    if (delApp) throw delApp;
+    // Delete from auth
+    const { error: delAuth } = await supabaseAdmin.auth.admin.deleteUser(userId);
+    if (delAuth) throw delAuth;
+
+    await logActivity(user.id, 'Delete User', `Deleted user ${u.email}`);
+    toast('User deleted.', 'success');
+    await fetchUsers();
+    renderUsers();
+    await fetchActivityLogs();
+    renderActivityLogs();
+  } catch(e) {
+    toast('Error: ' + e.message, 'error');
+  }
+}
+
+// ─── UI helpers for user management ───
+function umReset(){
+  umMode = 'create'; umEditId = null; umSelectedRole = 'librarian';
+  $('um-email').value = ''; $('um-email').disabled = false;
+  $('um-password').value = ''; $('um-fullname').value = '';
+  $('um-password-field').style.display = 'block';
+  $('um-form-title-text').textContent = 'Create User';
+  $('um-submit-btn').innerHTML = '<i class="ti ti-check"></i> Create User';
+  setRole('librarian');
+  $('um-form-card').style.display = 'none';
+}
+
+function setRole(role){
+  umSelectedRole = role;
+  document.querySelectorAll('.um-role-pill').forEach(p => {
+    p.classList.toggle('selected', p.dataset.role === role);
+  });
+}
+
 /* ══ NAVIGATION ══ */
-const PAGE_TITLES={
-  dashboard:'Dashboard',books:'Books Catalog',students:'Students',
-  issues:'Book Issues',overdue:'Overdue Books',lostbooks:'Lost Books',
-  analytics:'Analytics',borrowlog:'Borrow Log',dbstatus:'DB Status',
-  conditions:'Book Conditions',users:'User Management'
+const PAGE_TITLES = {
+  dashboard:'Dashboard', books:'Books Catalog', students:'Students',
+  issues:'Book Issues', overdue:'Overdue Books', lostbooks:'Lost Books',
+  analytics:'Analytics', borrowlog:'Borrow Log', dbstatus:'DB Status',
+  conditions:'Book Conditions', users:'User Management', activitylogs:'Activity Logs'
 };
 function goTo(page){
   document.querySelectorAll('.sb-item[data-page]').forEach(el=>el.classList.toggle('active',el.dataset.page===page));
   document.querySelectorAll('.page').forEach(el=>el.classList.toggle('active',el.id==='page-'+page));
   $('page-title').textContent=PAGE_TITLES[page]||page;
+  // Refresh content on navigation
+  if (page === 'dashboard') { loadDashboard(); }
+  if (page === 'users') { fetchUsers().then(renderUsers); }
+  if (page === 'activitylogs') { fetchActivityLogs().then(() => renderActivityLogs()); }
 }
-function setRefresh(v){$('refresh-btn').classList.toggle('spinning',v);}
+function setRefresh(v){ $('refresh-btn').classList.toggle('spinning',v); }
 function toggleTheme(){
   const dark=document.documentElement.dataset.theme==='dark';
   document.documentElement.dataset.theme=dark?'light':'dark';
   $('theme-btn').innerHTML=`<i class="ti ti-${dark?'moon':'sun'}"></i>`;
   if(BOOKS.length||ISSUES.length){buildBorrowChart();buildCatChart();}
 }
-function toast(msg,type='info'){
-  const icons={success:'check',error:'x',warning:'alert-triangle',info:'info-circle'};
-  const t=document.createElement('div'); t.className=`toast ${type}`;
-  t.innerHTML=`<i class="ti ti-${icons[type]||'info-circle'}"></i>${msg}`;
-  $('toasts').appendChild(t); setTimeout(()=>t.remove(),4500);
+function fmtDate(d){
+  if(!d)return'—';const dt=new Date(d);if(isNaN(dt))return String(d);
+  return dt.toLocaleDateString('en-GB',{day:'2-digit',month:'short',year:'numeric'});
 }
-function $(id){return document.getElementById(id);}
 
-/* ══ BIND ══ */
+/* ══ BIND EVENTS ══ */
 function bindListeners(){
-  $('login-btn').addEventListener('click',doLogin);
-  $('register-btn').addEventListener('click',doRegister);
-  $('logout-btn').addEventListener('click',doLogout);
-  $('show-register').addEventListener('click',()=>{$('login-view').style.display='none';$('register-view').style.display='block';});
-  $('show-login').addEventListener('click',()=>{$('login-view').style.display='block';$('register-view').style.display='none';});
-  document.querySelectorAll('.sb-item[data-page]').forEach(el=>el.addEventListener('click',()=>goTo(el.dataset.page)));
-  document.querySelectorAll('[data-goto]').forEach(el=>el.addEventListener('click',()=>goTo(el.dataset.goto)));
-  $('refresh-btn').addEventListener('click',async()=>{if(!user)return;await loadAll();toast('Data refreshed','success');});
-  $('theme-btn').addEventListener('click',toggleTheme);
-  $('books-search').addEventListener('input',e=>renderBooks(e.target.value));
-  $('students-search').addEventListener('input',e=>renderStudents(e.target.value));
-  $('issues-search').addEventListener('input',e=>renderIssues(e.target.value));
-  $('lostbooks-search').addEventListener('input',e=>renderLostBooks(e.target.value));
-  $('log-search').addEventListener('input',e=>renderBorrowLog(e.target.value));
-  $('conditions-search').addEventListener('input',e=>renderConditions(e.target.value));
-  document.querySelectorAll('.ptab').forEach(t=>t.addEventListener('click',()=>{
-    document.querySelectorAll('.ptab').forEach(x=>x.classList.remove('active'));
-    t.classList.add('active'); currentPeriod=t.dataset.period; renderAnalytics();
-  }));
-  ['login-email','login-password'].forEach(id=>$(id)?.addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();}));
+  $('login-btn').addEventListener('click', doLogin);
+  $('register-btn').addEventListener('click', doRegister);
+  $('logout-btn').addEventListener('click', doLogout);
+  $('show-register').addEventListener('click', ()=>{ $('login-view').style.display='none'; $('register-view').style.display='block'; });
+  $('show-login').addEventListener('click', ()=>{ $('login-view').style.display='block'; $('register-view').style.display='none'; });
+  document.querySelectorAll('.sb-item[data-page]').forEach(el => el.addEventListener('click', () => goTo(el.dataset.page)));
+  document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => goTo(el.dataset.goto)));
+  $('refresh-btn').addEventListener('click', async () => { if(!user) return; await loadAll(); toast('Data refreshed','success'); });
+  $('theme-btn').addEventListener('click', toggleTheme);
 
-  /* Admin portal buttons */
+  // Search inputs
+  $('books-search').addEventListener('input', e => renderBooks(e.target.value));
+  $('students-search').addEventListener('input', e => renderStudents(e.target.value));
+  $('issues-search').addEventListener('input', e => renderIssues(e.target.value));
+  $('lostbooks-search').addEventListener('input', e => renderLostBooks(e.target.value));
+  $('log-search').addEventListener('input', e => renderBorrowLog(e.target.value));
+  $('conditions-search').addEventListener('input', e => renderConditions(e.target.value));
+  $('activitylogs-search').addEventListener('input', e => { activityLogsPage = 1; renderActivityLogs(e.target.value); });
+
+  // Period tabs
+  document.querySelectorAll('.ptab').forEach(t => t.addEventListener('click', () => {
+    document.querySelectorAll('.ptab').forEach(x => x.classList.remove('active'));
+    t.classList.add('active'); currentPeriod = t.dataset.period; renderAnalytics();
+  }));
+
+  ['login-email','login-password'].forEach(id => $(id)?.addEventListener('keydown', e => { if(e.key==='Enter') doLogin(); }));
+
+  // Admin portal
   $('admin-portal-btn').addEventListener('click', launchAdminPortal);
   $('topbar-admin-btn').addEventListener('click', launchAdminPortal);
   $('portal-launch-btn-page').addEventListener('click', launchAdminPortal);
 
-  /* User management */
+  // User management
   $('um-new-btn').addEventListener('click', () => {
     umReset();
     $('um-form-card').style.display = 'block';
