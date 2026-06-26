@@ -12,7 +12,7 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=Fraunces:opsz,wght@9..144,700;9..144,900&family=Cinzel:wght@700;900&family=Playfair+Display:wght@700;900&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
-    /* ─── CSS ─── */
+    /* ─── RESET & DESIGN TOKENS ─── */
     :root {
       --navy:#0c1e3e; --navy2:#162d54; --gold:#c9a227; --gold2:#e6bb44;
       --bg:#f4f3f0; --surface:#ffffff; --border:rgba(0,0,0,0.08); --border2:rgba(0,0,0,0.14);
@@ -743,11 +743,10 @@
 
 <script>
 /* ═══════════════════════════════════════════════════
-   CONFIG — Replace with your actual Supabase keys
+   CONFIG – Replace with your actual Supabase keys
    ═══════════════════════════════════════════════════ */
 const SB_URL = "https://uvispwigefzhjvkqcxkm.supabase.co";
 const SB_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA";
-
 const PORTAL_URL = "https://manziallan998-maker.github.io/libmanagement/";
 
 let sb, user, currentSession;
@@ -924,7 +923,6 @@ async function doRegister(){
   try {
     const{data,error}=await sb.auth.signUp({email:em,password:pw});
     if(error) throw error;
-    // Also create in app_users so they can use the library system
     if(data.user){
       const { error: insErr } = await sb.from('app_users').insert({
         id: data.user.id,
@@ -985,13 +983,11 @@ async function fetchStudents() {
     if (error) throw new Error('students: ' + error.message);
     STUDENTS = data || [];
 }
-
 async function fetchIssues() {
     const { data, error } = await sb.from('book_issues').select('*').order('issue_date', { ascending: false }).limit(2000);
     if (error) throw new Error('book_issues: ' + error.message);
     ISSUES = data || [];
 }
-
 async function fetchUsers() {
     try {
         const { data, error } = await sb.from('app_users').select('*').order('created_at', { ascending: false });
@@ -1222,7 +1218,7 @@ function renderAnalytics(){
   else if(currentPeriod==='term') cutoff=new Date(now.getFullYear(),Math.floor(now.getMonth()/3)*3,1);
   else if(currentPeriod==='year') cutoff=new Date(now.getFullYear(),0,1);
   else cutoff=new Date(0);
-  const pIssues=ISSUES.filter(i=>{const d=new Date(i[C.i_issued]||0);return!isNaN(d)&&d>=cutoff;});
+  const pIssues=ISSUES.filter(i=>{const d=new Date(i.issue_date || 0);return !isNaN(d) && d>=cutoff;});
   const borrowed=pIssues.length, returned=pIssues.filter(isReturned).length;
   const rate=borrowed>0?Math.round(returned/borrowed*100):0;
   const ov=ISSUES.filter(isOverdue).length;
@@ -1237,7 +1233,7 @@ function renderAnalytics(){
 }
 function buildBorrowChart(){
   const months=[],counts=[];
-  for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(d.toLocaleString('default',{month:'short'}));counts.push(ISSUES.filter(iss=>{const id=new Date(iss[C.i_issued]||0);return!isNaN(id)&&id.getMonth()===d.getMonth()&&id.getFullYear()===d.getFullYear();}).length);}
+  for(let i=5;i>=0;i--){const d=new Date();d.setDate(1);d.setMonth(d.getMonth()-i);months.push(d.toLocaleString('default',{month:'short'}));counts.push(ISSUES.filter(iss=>{const id=new Date(iss.issue_date || 0);return!isNaN(id)&&id.getMonth()===d.getMonth()&&id.getFullYear()===d.getFullYear();}).length);}
   const ctx=$('chart-borrow').getContext('2d');if(borrowChart)borrowChart.destroy();
   borrowChart=new Chart(ctx,{type:'bar',data:{labels:months,datasets:[{data:counts,backgroundColor:'#0c1e3e',hoverBackgroundColor:'#c9a227',borderRadius:6,borderSkipped:false}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{callbacks:{label:c=>` ${c.raw} issues`}}},scales:{x:{grid:{display:false},ticks:{font:{size:11},color:'#888'}},y:{grid:{color:'rgba(0,0,0,0.05)'},border:{display:false},ticks:{font:{size:11},color:'#888',stepSize:Math.max(1,Math.ceil(Math.max(...counts,1)/5))},min:0}}}});
 }
@@ -1409,7 +1405,6 @@ async function createUser(){
   btn.disabled = true; btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
 
   try {
-    // 🚀 ONLY insert into app_users — NO Auth creation
     const { error } = await sb.from('app_users').insert({
       email,
       full_name: fullName || null,
@@ -1518,7 +1513,6 @@ window.deleteUser = async function(userId){
   if (!confirm(`Permanently delete ${u.email}? This cannot be undone.`)) return;
 
   try {
-    // 🚀 ONLY delete from app_users — NO Auth deletion
     const { error } = await sb.from('app_users').delete().eq('id', userId);
     if (error) throw error;
 
