@@ -1116,17 +1116,22 @@ async function confirmApprove() {
   btn.disabled = true; btn.textContent = 'Approving…';
   try {
     const { data, error } = await sb.functions.invoke('approve-registration', { body: { request_id: pendingApproveId } });
-    if (error) throw new Error(error.message || JSON.stringify(error));
+    
+    // ✅ Check for errors inside the successful 200 response
+    if (error || !data?.success) {
+      throw new Error(data?.error || error?.message || 'Approval failed');
+    }
+    
     closeModal('modal-approve');
-    // Show credentials ONCE
-    document.getElementById('cred-school-code').textContent  = data.school_code || '—';
-    document.getElementById('cred-admin-email').textContent  = data.admin_email || '—';
-    document.getElementById('cred-temp-pass').textContent    = data.temp_password || '—';
+    document.getElementById('cred-school-code').textContent = data.school_code || '—';
+    document.getElementById('cred-admin-email').textContent = data.admin_email || '—';
+    document.getElementById('cred-temp-pass').textContent = data.temp_password || '—';
     document.getElementById('modal-creds').classList.add('open');
     toast('School approved successfully!', 'success');
     loadRequests('pending');
     loadTiles();
   } catch(e) {
+    // ✅ Now this will actually display the specific SQL/Auth error in your toast!
     toast('Approval failed: ' + e.message, 'error');
   } finally {
     btn.disabled = false; btn.textContent = 'Yes, Approve';
