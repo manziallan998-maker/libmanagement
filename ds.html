@@ -2228,11 +2228,12 @@
 
     <script>
         /* ══ SUPABASE CONFIG ══ */
-        const SB_URL = "https://vqonijhvylgjdmjtsmtg.supabase.co";
-        const SB_KEY ="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxb25pamh2eWxnamRtanRzbXRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NTc4MDMsImV4cCI6MjA5ODEzMzgwM30.25Ng6qUiFnTiP6kiXD0i2Bb3xk6fVgF2PMFydDN0o3k";
+        const SB_URL = "https://uvispwigefzhjvkqcxkm.supabase.co";
+        const SB_KEY =
+            "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA";
 
         /* Target portal URL */
-        const PORTAL_URL = "https://manziallan998-maker.github.io/libmanagement/index.html";
+        const PORTAL_URL = "https://manziallan998-maker.github.io/libmanagement/";
 
         let sb, user, currentSession;
         let adminRow = null;
@@ -2357,12 +2358,18 @@
         /* ══ ADMIN IDENTITY (replaces ensureAppUser — admins, not app_users, log in here) ══ */
         async function loadAdminIdentity() {
             try {
-                const { data: { user: authUser } } = await sb.auth.getUser();
-                const { data: adminData, error } = await sb.from('admins')
-                    .select('*, schools(name, school_code)')
+                const { data: { user: authUser }, error: userErr } = await sb.auth.getUser();
+                if (userErr || !authUser) throw new Error(userErr?.message || 'No authenticated session found.');
+
+                // Plain select, no embed — avoids any FK/embedding ambiguity. RLS policy
+                // admins_self_or_super already permits id = auth.uid() OR is_super_admin().
+                const { data: adminData, error: adminErr } = await sb.from('admins')
+                    .select('*')
                     .eq('id', authUser.id)
                     .maybeSingle();
-                if (error || !adminData) {
+
+                if (adminErr) { console.error('admins lookup error:', adminErr); throw new Error(adminErr.message); }
+                if (!adminData) {
                     await sb.auth.signOut();
                     user = null;
                     currentSession = null;
@@ -2370,12 +2377,27 @@
                     showAuth();
                     return null;
                 }
+
+                // Fetch the school separately. Super Admins typically have school_id = null
+                // (they have no single home school), so skip the lookup for them.
+                if (adminData.school_id) {
+                    const { data: schoolData, error: schoolErr } = await sb.from('schools')
+                        .select('name, school_code')
+                        .eq('id', adminData.school_id)
+                        .maybeSingle();
+                    if (schoolErr) console.warn('schools lookup warning:', schoolErr.message);
+                    adminData.schools = schoolData || null;
+                } else {
+                    adminData.schools = null;
+                }
+
                 return adminData;
             } catch (e) {
+                console.error('loadAdminIdentity failed:', e);
                 await sb.auth.signOut();
                 user = null;
                 currentSession = null;
-                toast('Could not verify admin identity. Please sign in again.', 'error');
+                toast('Could not verify admin identity: ' + e.message, 'error');
                 showAuth();
                 return null;
             }
