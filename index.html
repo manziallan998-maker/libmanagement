@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>G.S APAPEC MURAMBI LIB.SYSTEM</title>
+    <title>Library Management System</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -1497,26 +1497,44 @@
         <div class="auth-container">
             <div class="auth-logo">
                 <div class="auth-logo-icon">📚</div>
-                <h1>G.S APAPEC MURAMBI</h1>
+                <h1 id="authSchoolName">LibraryOS</h1>
                 <p>Library Management System</p>
             </div>
-            <div class="auth-card">
+            <!-- Login path tabs -->
+            <div style="display:flex;gap:0;margin-bottom:14px;border:1px solid var(--border);border-radius:var(--r-sm);overflow:hidden">
+                <button id="tabStaff" onclick="Auth.switchTab('staff')" style="flex:1;padding:9px;font-size:.83rem;font-weight:600;background:var(--rust);color:#fff;border:none;cursor:pointer;transition:all .15s">Staff Login</button>
+                <button id="tabSSO" onclick="Auth.switchTab('sso')" style="flex:1;padding:9px;font-size:.83rem;font-weight:600;background:var(--surface-3);color:var(--ink-muted);border:none;cursor:pointer;transition:all .15s">Admin SSO</button>
+            </div>
+            <!-- Staff (School Code + Password) -->
+            <div class="auth-card" id="authPanelStaff">
                 <div class="auth-form">
                     <div id="authError" class="auth-error"></div>
                     <div class="auth-form-group">
-                        <label>Email</label>
-                        <input class="auth-input" type="email" id="loginEmail" placeholder="your-email@example.com" autocomplete="username">
+                        <label>School Code</label>
+                        <input class="auth-input" type="text" id="loginSchoolCode" placeholder="e.g. SCH-001" autocomplete="username">
                     </div>
                     <div class="auth-form-group">
                         <label>Password</label>
                         <input class="auth-input" type="password" id="loginPassword" placeholder="••••••••" autocomplete="current-password">
                     </div>
-                    <button class="auth-btn" id="loginBtn" onclick="Auth.login()">
+                    <button class="auth-btn" id="loginBtn" onclick="Auth.loginStaff()">
                         <span id="loginBtnText">Sign In</span>
                         <span class="spinner" id="loginSpinner" style="display:none"></span>
                     </button>
                 </div>
-                <div class="auth-hint">Sign in using your credentials from the app_users table.<br>Contact admin if you don't have an account.</div>
+                <div class="auth-hint">Enter your school code and password.<br>Contact your administrator if you need access.</div>
+            </div>
+            <!-- SSO (for Org Admins arriving from Monitor Hub) -->
+            <div class="auth-card" id="authPanelSSO" style="display:none">
+                <div class="auth-form">
+                    <div id="authErrorSSO" class="auth-error"></div>
+                    <p style="font-size:.85rem;color:var(--ink-muted);text-align:center;padding:10px 0">This login is for administrators arriving via the <strong>Admin Panel</strong> link in Monitor Hub.<br><br>If you were sent here by that link, click the button below. Otherwise, use Staff Login.</p>
+                    <button class="auth-btn" id="ssoBtn" onclick="Auth.triggerSSO()">
+                        <span id="ssoBtnText">Continue with SSO</span>
+                        <span class="spinner" id="ssoSpinner" style="display:none"></span>
+                    </button>
+                </div>
+                <div class="auth-hint">SSO tokens are passed automatically via URL. If this button fails, return to Monitor Hub and click the Admin Panel link again.</div>
             </div>
         </div>
     </div>
@@ -1528,7 +1546,7 @@
         <nav class="sidebar" id="sidebar">
             <div class="sidebar-logo">
                 <div class="logo-mark">📚</div>
-                <div class="logo-name">G.S APAPEC MURAMBI<span>Library Management System</span></div>
+                <div class="logo-name" id="sidebarSchoolName">LibraryOS<span>Library Management System</span></div>
             </div>
             <div class="sidebar-user">
                 <div class="user-avatar" id="sidebarAvatar">A</div>
@@ -1549,6 +1567,7 @@
                 <div class="nav-item" data-section="reports"><span class="nav-icon">📊</span>Reports</div>
                 <div class="nav-label">Tools</div>
                 <div class="nav-item" id="nav-bulkimport" data-section="bulkimport"><span class="nav-icon">🤖</span>Bulk Import</div>
+                <div class="nav-item" id="nav-importlog" data-section="importlog"><span class="nav-icon">📋</span>Import History</div>
                 <div class="nav-item" id="nav-settings" data-section="settings"><span class="nav-icon">⚙️</span>Settings</div>
             </div>
             <div class="sidebar-footer">
@@ -1766,7 +1785,32 @@
                 <section class="section" id="section-bulkimport">
                     <div class="sec-header"><h2>🤖 AI IMPORT</h2></div>
                     <div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-md)">
-                        <iframe src="https://manziallan998-maker.github.io/file-detector--ai/" style="width:100%;height:calc(100vh - 140px);min-height:600px;border:none;display:block" allow="clipboard-read; clipboard-write" title="AI Bulk Import Tool"></iframe>
+                        <iframe id="bulkImportFrame" src="https://manziallan998-maker.github.io/file-detector--ai/" style="width:100%;height:calc(100vh - 140px);min-height:600px;border:none;display:block" allow="clipboard-read; clipboard-write" title="AI Bulk Import Tool"></iframe>
+                    </div>
+                </section>
+
+                <!-- IMPORT HISTORY -->
+                <section class="section" id="section-importlog">
+                    <div class="sec-header">
+                        <h2>📋 Import History</h2>
+                        <div class="sec-actions">
+                            <button class="btn btn-secondary btn-sm" onclick="ImportLog.render()">🔄 Refresh</button>
+                        </div>
+                    </div>
+                    <div class="tbl-wrap">
+                        <div class="tbl-scroll">
+                            <table class="tbl">
+                                <thead><tr>
+                                    <th>Batch ID</th>
+                                    <th>Target Table</th>
+                                    <th>Action</th>
+                                    <th>Rows</th>
+                                    <th>Actor</th>
+                                    <th>When</th>
+                                </tr></thead>
+                                <tbody id="importLogTbody"><tr><td colspan="6" style="text-align:center;padding:22px;color:var(--ink-muted)">Loading…</td></tr></tbody>
+                            </table>
+                        </div>
                     </div>
                 </section>
 
@@ -2113,7 +2157,7 @@
         if (typeof SUPABASE_ANON === 'undefined') var SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA';
 
         let _sb = null;
-        let currentUser = null; // { id, email, full_name, role, is_active }
+        let currentUser = null; // { id, email, full_name, role, school_id, school_name, identityType, _schoolCode?, _password? }
 
         function initSupabase() {
             try {
@@ -2125,7 +2169,7 @@
             }
         }
 
-        /* ─── SSO Auto‑Login (Step 3.2) ─── */
+        /* ─── SSO Auto‑Login (Org Admin path — from Monitor Hub) ─── */
         async function handleSSO() {
             const hash = window.location.hash;
             if (!hash) return false;
@@ -2148,47 +2192,37 @@
                 if (userError) throw userError;
                 if (!authUser) throw new Error('No authenticated user');
 
-                const { data: appUser, error: fetchError } = await _sb
-                    .from('app_users')
-                    .select('*')
+                // Look up in admins table — never auto-create
+                const { data: adminRow, error: adminError } = await _sb
+                    .from('admins')
+                    .select('*, schools(name, school_code)')
                     .eq('id', authUser.id)
                     .maybeSingle();
 
-                if (fetchError) throw fetchError;
+                if (adminError) throw adminError;
 
-                let userRecord;
-                if (!appUser) {
-                    const newUser = {
-                        id: authUser.id,
-                        email: authUser.email,
-                        full_name: authUser.user_metadata?.full_name || authUser.email,
-                        role: 'viewer',
-                        is_active: true,
-                        password: null
-                    };
-                    const { data: created, error: createError } = await _sb
-                        .from('app_users')
-                        .insert([newUser])
-                        .select()
-                        .single();
-                    if (createError) throw createError;
-                    userRecord = created;
-                } else {
-                    userRecord = appUser;
-                }
-
-                if (!userRecord.is_active) {
-                    Toast.show('Your account is deactivated. Contact admin.', 'error');
+                if (!adminRow) {
+                    Toast.show('Not authorized for this Library System.', 'error');
                     window.location.href = window.location.pathname;
                     return false;
                 }
 
-                currentUser = userRecord;
+                currentUser = {
+                    id: adminRow.id,
+                    email: adminRow.email || authUser.email,
+                    full_name: adminRow.full_name || authUser.user_metadata?.full_name || authUser.email,
+                    role: adminRow.role || 'admin',
+                    school_id: adminRow.school_id,
+                    school_name: adminRow.schools?.name || adminRow.school_name || 'School',
+                    identityType: 'admin'
+                };
+
+                _applySchoolBranding(currentUser.school_name);
                 showApp();
                 setTimeout(() => updateSidebarUser(), 100);
                 loadAllData();
-                await DB.addActivity('Login', 'User ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ') logged in via SSO');
-                Toast.show('Welcome, ' + (currentUser.full_name || currentUser.email) + '!', 'success');
+                await DB.addActivity('Login', 'Admin ' + currentUser.full_name + ' logged in via SSO');
+                Toast.show('Welcome, ' + currentUser.full_name + '!', 'success');
 
                 window.history.replaceState({}, document.title, window.location.pathname);
                 return true;
@@ -2198,6 +2232,24 @@
                 Toast.show('SSO login failed: ' + e.message, 'error');
                 window.location.href = window.location.pathname;
                 return false;
+            }
+        }
+
+        function _applySchoolBranding(schoolName) {
+            if (!schoolName) return;
+            document.title = schoolName + ' — Library System';
+            const authH1 = document.getElementById('authSchoolName');
+            if (authH1) authH1.textContent = schoolName;
+            const sidebarLogo = document.getElementById('sidebarSchoolName');
+            if (sidebarLogo) {
+                // preserve the <span> child
+                const span = sidebarLogo.querySelector('span');
+                sidebarLogo.childNodes[0].textContent = schoolName;
+                if (!span) {
+                    const s = document.createElement('span');
+                    s.textContent = 'Library Management System';
+                    sidebarLogo.appendChild(s);
+                }
             }
         }
 
@@ -2222,6 +2274,7 @@
 
             document.getElementById('nav-settings').style.display = isAdmin ? 'flex' : 'none';
             document.getElementById('nav-bulkimport').style.display = isLibrarian ? 'flex' : 'none';
+            document.getElementById('nav-importlog').style.display = isLibrarian ? 'flex' : 'none';
             document.getElementById('btn-add-book').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-add-student').style.display = isLibrarian ? 'inline-flex' : 'none';
             document.getElementById('btn-issue-book').style.display = isLibrarian ? 'inline-flex' : 'none';
@@ -2290,7 +2343,245 @@
         }
 
         /* ═══════════════════════════════════════════════════
-           DATABASE LAYER (UPDATED: addActivity now inserts into activity_logs)
+           DATA DISPATCH LAYER — routes admin vs staff calls
+        ═══════════════════════════════════════════════════ */
+        const Data = {
+            isAdmin() { return currentUser?.identityType === 'admin'; },
+            _sc() { return currentUser?._schoolCode; },
+            _pw() { return currentUser?._password; },
+
+            async getBooks(filters = {}) {
+                if (this.isAdmin()) {
+                    let q = _sb.from('books').select('*').eq('school_id', currentUser.school_id);
+                    if (filters.search) {
+                        const s = filters.search;
+                        q = q.or(`book_category.ilike.%${s}%,curriculum.ilike.%${s}%,subject.ilike.%${s}%,book_publisher.ilike.%${s}%,grade.ilike.%${s}%`);
+                    }
+                    if (filters.grade) q = q.eq('grade', filters.grade);
+                    if (filters.category) q = q.eq('book_category', filters.category);
+                    q = q.order('book_id');
+                    const { data, error } = await q;
+                    if (error) throw error;
+                    return data || [];
+                }
+                const { data, error } = await _sb.rpc('staff_get_books', { p_school_code: this._sc(), p_password: this._pw() });
+                if (error) throw error;
+                let result = data || [];
+                // Apply client-side filters for staff path (RPC returns all books for the school)
+                if (filters.search) {
+                    const s = filters.search.toLowerCase();
+                    result = result.filter(b => [b.book_category, b.curriculum, b.subject, b.book_publisher, b.grade].some(f => (f||'').toLowerCase().includes(s)));
+                }
+                if (filters.grade) result = result.filter(b => b.grade === filters.grade);
+                if (filters.category) result = result.filter(b => b.book_category === filters.category);
+                return result.sort((a,b) => a.book_id - b.book_id);
+            },
+
+            async addBook(book) {
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('books').insert([{ ...book, school_id: currentUser.school_id }]).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_add_book', { p_school_code: this._sc(), p_password: this._pw(), p_book: book });
+                if (error) throw error;
+                return data;
+            },
+
+            async updateBook(book_id, updates) {
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('books').update(updates).eq('book_id', book_id).eq('school_id', currentUser.school_id).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_update_book', { p_school_code: this._sc(), p_password: this._pw(), p_book_id: book_id, p_updates: updates });
+                if (error) throw error;
+                return data;
+            },
+
+            async deleteBook(book_id) {
+                if (this.isAdmin()) {
+                    const { error } = await _sb.from('books').delete().eq('book_id', book_id).eq('school_id', currentUser.school_id);
+                    if (error) throw error;
+                    return;
+                }
+                const { error } = await _sb.rpc('staff_delete_book', { p_school_code: this._sc(), p_password: this._pw(), p_book_id: book_id });
+                if (error) throw error;
+            },
+
+            async getStudents(filters = {}) {
+                if (this.isAdmin()) {
+                    let q = _sb.from('students').select('*').eq('school_id', currentUser.school_id);
+                    if (filters.search) {
+                        const s = filters.search;
+                        q = q.or(`student_name.ilike.%${s}%,class.ilike.%${s}%`);
+                    }
+                    if (filters.class) q = q.eq('class', filters.class);
+                    q = q.order('student_name');
+                    const { data, error } = await q;
+                    if (error) throw error;
+                    return data || [];
+                }
+                const { data, error } = await _sb.rpc('staff_get_students', { p_school_code: this._sc(), p_password: this._pw() });
+                if (error) throw error;
+                let result = data || [];
+                if (filters.search) {
+                    const s = filters.search.toLowerCase();
+                    result = result.filter(st => [st.student_name, st.class].some(f => (f||'').toLowerCase().includes(s)));
+                }
+                if (filters.class) result = result.filter(st => st.class === filters.class);
+                return result.sort((a,b) => (a.student_name||'').localeCompare(b.student_name||''));
+            },
+
+            async addStudent(student) {
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('students').insert([{ ...student, school_id: currentUser.school_id }]).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_add_student', { p_school_code: this._sc(), p_password: this._pw(), p_student: student });
+                if (error) throw error;
+                return data;
+            },
+
+            async updateStudent(student_id, updates) {
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('students').update(updates).eq('student_id', student_id).eq('school_id', currentUser.school_id).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_update_student', { p_school_code: this._sc(), p_password: this._pw(), p_student_id: student_id, p_updates: updates });
+                if (error) throw error;
+                return data;
+            },
+
+            async deleteStudent(student_id) {
+                if (this.isAdmin()) {
+                    const { error } = await _sb.from('students').delete().eq('student_id', student_id).eq('school_id', currentUser.school_id);
+                    if (error) throw error;
+                    return;
+                }
+                const { error } = await _sb.rpc('staff_delete_student', { p_school_code: this._sc(), p_password: this._pw(), p_student_id: student_id });
+                if (error) throw error;
+            },
+
+            async _hydrateIssues(issues) {
+                if (!issues || !issues.length) return [];
+                const bookIds = [...new Set(issues.map(i => i.book_id))];
+                const studentIds = [...new Set(issues.map(i => i.student_id))];
+                const [{ data: books, error: bErr }, { data: students, error: sErr }] = await Promise.all([
+                    _sb.from('books').select('*').in('book_id', bookIds),
+                    _sb.from('students').select('*').in('student_id', studentIds),
+                ]);
+                if (bErr) throw bErr;
+                if (sErr) throw sErr;
+                const bookMap = Object.fromEntries((books || []).map(b => [b.book_id, b]));
+                const studentMap = Object.fromEntries((students || []).map(s => [s.student_id, s]));
+                return issues.map(i => ({ ...i, book: bookMap[i.book_id] || null, student: studentMap[i.student_id] || null }));
+            },
+
+            async getIssues(filters = {}) {
+                const today = U.today();
+                if (this.isAdmin()) {
+                    let q = _sb.from('book_issues').select('*').eq('school_id', currentUser.school_id);
+                    if (filters.status === 'active') q = q.eq('returned', false).eq('lost', false);
+                    else if (filters.status === 'returned') q = q.eq('returned', true);
+                    else if (filters.status === 'overdue') q = q.eq('returned', false).eq('lost', false).lt('return_date', today);
+                    else if (filters.status === 'damaged') q = q.neq('book_condition', 'good');
+                    else if (filters.status === 'lost') q = q.eq('lost', true);
+                    if (filters.student_id) q = q.eq('student_id', filters.student_id);
+                    q = q.order('issue_date', { ascending: false });
+                    const { data: issues, error } = await q;
+                    if (error) throw error;
+                    return this._hydrateIssues(issues);
+                }
+                const { data, error } = await _sb.rpc('staff_get_issues', { p_school_code: this._sc(), p_password: this._pw() });
+                if (error) throw error;
+                let result = data || [];
+                if (filters.status === 'active') result = result.filter(i => !i.returned && !i.lost);
+                else if (filters.status === 'returned') result = result.filter(i => i.returned);
+                else if (filters.status === 'overdue') result = result.filter(i => !i.returned && !i.lost && i.return_date && i.return_date < today);
+                else if (filters.status === 'damaged') result = result.filter(i => i.book_condition && i.book_condition !== 'good');
+                else if (filters.status === 'lost') result = result.filter(i => i.lost);
+                if (filters.student_id) result = result.filter(i => i.student_id === filters.student_id);
+                result.sort((a,b) => (b.issue_date||'').localeCompare(a.issue_date||''));
+                return this._hydrateIssues(result);
+            },
+
+            async addIssue(issue) {
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('book_issues').insert([{ ...issue, school_id: currentUser.school_id }]).select().single();
+                    if (error) throw error;
+                    const [{ data: book }, { data: student }] = await Promise.all([
+                        _sb.from('books').select('*').eq('book_id', data.book_id).single(),
+                        _sb.from('students').select('*').eq('student_id', data.student_id).single(),
+                    ]);
+                    return { ...data, book: book || null, student: student || null };
+                }
+                const { data, error } = await _sb.rpc('staff_issue_book', { p_school_code: this._sc(), p_password: this._pw(), p_issue: issue });
+                if (error) throw error;
+                return data;
+            },
+
+            async returnIssue(issue_id) {
+                const today = U.today();
+                if (this.isAdmin()) {
+                    const { data, error } = await _sb.from('book_issues').update({ returned: true, return_date: today }).eq('issue_id', issue_id).eq('school_id', currentUser.school_id).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_return_book', { p_school_code: this._sc(), p_password: this._pw(), p_issue_id: issue_id });
+                if (error) throw error;
+                return data;
+            },
+
+            async markLost(issue_id, lost_fee, note) {
+                const updates = { lost: true, lost_date: U.today(), lost_fee };
+                if (this.isAdmin()) {
+                    if (note) {
+                        const { data: existing } = await _sb.from('book_issues').select('condition_notes').eq('issue_id', issue_id).single();
+                        const prevNotes = existing?.condition_notes || '';
+                        updates.condition_notes = (prevNotes ? prevNotes + ' | ' : '') + `LOST (fee ${fmtFRW(lost_fee)}): ${note}`;
+                    }
+                    const { data, error } = await _sb.from('book_issues').update(updates).eq('issue_id', issue_id).eq('school_id', currentUser.school_id).select().single();
+                    if (error) throw error;
+                    return data;
+                }
+                const { data, error } = await _sb.rpc('staff_mark_lost', { p_school_code: this._sc(), p_password: this._pw(), p_issue_id: issue_id, p_lost_fee: lost_fee, p_note: note || null });
+                if (error) throw error;
+                return data;
+            },
+
+            async getLostBooks() {
+                return this.getIssues({ status: 'lost' });
+            },
+
+            async logActivity(action, details) {
+                if (this.isAdmin()) {
+                    try {
+                        const { error } = await _sb.from('activity_logs').insert([
+                            { user_id: currentUser.id, school_id: currentUser.school_id, action, details, created_at: new Date().toISOString() }
+                        ]);
+                        if (error) console.error('Activity log insert error:', error);
+                    } catch (e) { console.error('Activity log error:', e); }
+                } else {
+                    try {
+                        const { error } = await _sb.rpc('staff_log_activity', { p_school_code: this._sc(), p_password: this._pw(), p_action: action, p_details: details });
+                        if (error) console.error('Staff activity log error:', error);
+                    } catch (e) { console.error('Activity log error:', e); }
+                }
+            },
+
+            async getImportLog() {
+                const { data, error } = await _sb.from('import_log').select('*').eq('school_id', currentUser.school_id).order('created_at', { ascending: false });
+                if (error) throw error;
+                return data || [];
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════
+           DATABASE LAYER — thin wrappers into Data layer
+           (keeps all existing call sites working unchanged)
         ═══════════════════════════════════════════════════ */
         const DB = {
             async testConn() {
@@ -2310,183 +2601,28 @@
                 }
             },
 
-            async getBooks(filters = {}) {
-                let q = _sb.from('books').select('*');
-                if (filters.search) {
-                    const s = filters.search;
-                    q = q.or(
-                        `book_category.ilike.%${s}%,curriculum.ilike.%${s}%,subject.ilike.%${s}%,book_publisher.ilike.%${s}%,grade.ilike.%${s}%`
-                        );
-                }
-                if (filters.grade) q = q.eq('grade', filters.grade);
-                if (filters.category) q = q.eq('book_category', filters.category);
-                q = q.order('book_id');
-                const { data, error } = await q;
-                if (error) throw error;
-                return data || [];
-            },
+            async getBooks(filters = {}) { return Data.getBooks(filters); },
+            async addBook(book) { return Data.addBook(book); },
+            async updateBook(book_id, updates) { return Data.updateBook(book_id, updates); },
+            async deleteBook(book_id) { return Data.deleteBook(book_id); },
+            async getStudents(filters = {}) { return Data.getStudents(filters); },
+            async addStudent(s) { return Data.addStudent(s); },
+            async updateStudent(student_id, updates) { return Data.updateStudent(student_id, updates); },
+            async deleteStudent(student_id) { return Data.deleteStudent(student_id); },
+            async getIssues(filters = {}) { return Data.getIssues(filters); },
+            async addIssue(issue) { return Data.addIssue(issue); },
+            async returnIssue(issue_id) { return Data.returnIssue(issue_id); },
+            async markLost(issue_id, lost_fee, note) { return Data.markLost(issue_id, lost_fee, note); },
+            async getLostBooks() { return Data.getLostBooks(); },
 
-            async addBook(book) {
-                const { data, error } = await _sb.from('books').insert([book]).select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async updateBook(book_id, updates) {
-                const { data, error } = await _sb.from('books').update(updates).eq('book_id', book_id).select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async deleteBook(book_id) {
-                const { error } = await _sb.from('books').delete().eq('book_id', book_id);
-                if (error) throw error;
-            },
-
-            async getStudents(filters = {}) {
-                let q = _sb.from('students').select('*');
-                if (filters.search) {
-                    const s = filters.search;
-                    q = q.or(`student_name.ilike.%${s}%,class.ilike.%${s}%`);
-                }
-                if (filters.class) q = q.eq('class', filters.class);
-                q = q.order('student_name');
-                const { data, error } = await q;
-                if (error) throw error;
-                return data || [];
-            },
-
-            async addStudent(s) {
-                const { data, error } = await _sb.from('students').insert([s]).select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async updateStudent(student_id, updates) {
-                const { data, error } = await _sb.from('students').update(updates).eq('student_id', student_id).select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async deleteStudent(student_id) {
-                const { error } = await _sb.from('students').delete().eq('student_id', student_id);
-                if (error) throw error;
-            },
-
-            async getIssues(filters = {}) {
-                let q = _sb.from('book_issues').select('*');
-                const today = U.today();
-                if (filters.status === 'active') q = q.eq('returned', false).eq('lost', false);
-                else if (filters.status === 'returned') q = q.eq('returned', true);
-                else if (filters.status === 'overdue') q = q.eq('returned', false).eq('lost', false).lt('return_date', today);
-                else if (filters.status === 'damaged') q = q.neq('book_condition', 'good');
-                else if (filters.status === 'lost') q = q.eq('lost', true);
-
-                if (filters.student_id) q = q.eq('student_id', filters.student_id);
-                q = q.order('issue_date', { ascending: false });
-
-                const { data: issues, error } = await q;
-                if (error) throw error;
-                if (!issues || !issues.length) return [];
-
-                const bookIds = [...new Set(issues.map(i => i.book_id))];
-                const studentIds = [...new Set(issues.map(i => i.student_id))];
-
-                const [{ data: books, error: bErr }, { data: students, error: sErr }] = await Promise.all([
-                    _sb.from('books').select('*').in('book_id', bookIds),
-                    _sb.from('students').select('*').in('student_id', studentIds),
-                ]);
-                if (bErr) throw bErr;
-                if (sErr) throw sErr;
-
-                const bookMap = Object.fromEntries((books || []).map(b => [b.book_id, b]));
-                const studentMap = Object.fromEntries((students || []).map(s => [s.student_id, s]));
-
-                return issues.map(i => ({
-                    ...i,
-                    book: bookMap[i.book_id] || null,
-                    student: studentMap[i.student_id] || null,
-                }));
-            },
-
-            async addIssue(issue) {
-                const { data, error } = await _sb.from('book_issues').insert([issue]).select().single();
-                if (error) throw error;
-
-                const [{ data: book }, { data: student }] = await Promise.all([
-                    _sb.from('books').select('*').eq('book_id', data.book_id).single(),
-                    _sb.from('students').select('*').eq('student_id', data.student_id).single(),
-                ]);
-                return { ...data, book: book || null, student: student || null };
-            },
-
-            async returnIssue(issue_id) {
-                const today = U.today();
-                const { data, error } = await _sb.from('book_issues')
-                    .update({ returned: true, return_date: today })
-                    .eq('issue_id', issue_id)
-                    .select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async markLost(issue_id, lost_fee, note) {
-                const updates = { lost: true, lost_date: U.today(), lost_fee };
-                if (note) {
-                    const { data: existing } = await _sb.from('book_issues').select('condition_notes').eq('issue_id', issue_id).single();
-                    const prevNotes = existing?.condition_notes || '';
-                    updates.condition_notes = (prevNotes ? prevNotes + ' | ' : '') + `LOST (fee ${fmtFRW(lost_fee)}): ${note}`;
-                }
-                const { data, error } = await _sb.from('book_issues').update(updates).eq('issue_id', issue_id).select().single();
-                if (error) throw error;
-                return data;
-            },
-
-            async getLostBooks() {
-                const { data: issues, error } = await _sb.from('book_issues')
-                    .select('*')
-                    .eq('lost', true)
-                    .order('lost_date', { ascending: false });
-                if (error) throw error;
-                if (!issues || !issues.length) return [];
-
-                const bookIds = [...new Set(issues.map(i => i.book_id))];
-                const studentIds = [...new Set(issues.map(i => i.student_id))];
-
-                const [{ data: books, error: bErr }, { data: students, error: sErr }] = await Promise.all([
-                    _sb.from('books').select('*').in('book_id', bookIds),
-                    _sb.from('students').select('*').in('student_id', studentIds),
-                ]);
-                if (bErr) throw bErr;
-                if (sErr) throw sErr;
-
-                const bookMap = Object.fromEntries((books || []).map(b => [b.book_id, b]));
-                const studentMap = Object.fromEntries((students || []).map(s => [s.student_id, s]));
-
-                return issues.map(i => ({
-                    ...i,
-                    book: bookMap[i.book_id] || null,
-                    student: studentMap[i.student_id] || null,
-                }));
-            },
-
-            // ─── UPDATED ACTIVITY LOGGING ───
+            // Activity helpers
             getActivity() {
                 try { return JSON.parse(localStorage.getItem('lib_activity')) || []; } catch { return []; }
             },
 
             async addActivity(action, details) {
-                // Insert into the actual activity_logs table in Supabase
-                if (currentUser) {
-                    try {
-                        const { error } = await _sb.from('activity_logs').insert([
-                            { user_id: currentUser.id, action, details, created_at: new Date().toISOString() }
-                        ]);
-                        if (error) console.error('Activity log insert error:', error);
-                    } catch (e) { console.error('Activity log error:', e); }
-                }
-
-                // Keep local cache for the UI feed (Dashboard)
+                await Data.logActivity(action, details);
+                // Keep local cache for dashboard activity feed
                 const logs = this.getActivity();
                 const typeMap = {
                     'Login':'login', 'Logout':'logout', 'Add Book':'add', 'Update Book':'add', 'Delete Book':'delete',
@@ -2563,11 +2699,22 @@
         document.getElementById('confirmOverlay').addEventListener('click', e => { if (e.target === e.currentTarget) Confirm.cancel(); });
 
         /* ═══════════════════════════════════════════════════
-           AUTH (UPDATED – app_users only)
+           AUTH — Two paths: Staff (School Code) + Admin SSO
         ═══════════════════════════════════════════════════ */
         const Auth = {
-            async login() {
-                const email = document.getElementById('loginEmail').value.trim();
+            switchTab(tab) {
+                const isStaff = tab === 'staff';
+                document.getElementById('authPanelStaff').style.display = isStaff ? '' : 'none';
+                document.getElementById('authPanelSSO').style.display = isStaff ? 'none' : '';
+                document.getElementById('tabStaff').style.background = isStaff ? 'var(--rust)' : 'var(--surface-3)';
+                document.getElementById('tabStaff').style.color = isStaff ? '#fff' : 'var(--ink-muted)';
+                document.getElementById('tabSSO').style.background = isStaff ? 'var(--surface-3)' : 'var(--rust)';
+                document.getElementById('tabSSO').style.color = isStaff ? 'var(--ink-muted)' : '#fff';
+            },
+
+            // Path B: Staff / Librarian / Viewer — School Code + Password via RPC
+            async loginStaff() {
+                const schoolCode = document.getElementById('loginSchoolCode').value.trim();
                 const password = document.getElementById('loginPassword').value;
                 const errorEl = document.getElementById('authError');
                 errorEl.classList.remove('visible');
@@ -2575,8 +2722,8 @@
                 const spinner = document.getElementById('loginSpinner');
                 const btnText = document.getElementById('loginBtnText');
 
-                if (!email || !password) {
-                    errorEl.textContent = 'Please enter email and password.';
+                if (!schoolCode || !password) {
+                    errorEl.textContent = 'Please enter school code and password.';
                     errorEl.classList.add('visible');
                     return;
                 }
@@ -2586,33 +2733,32 @@
                 spinner.style.display = 'inline-block';
 
                 try {
-                    const { data: user, error } = await _sb
-                        .from('app_users')
-                        .select('*')
-                        .eq('email', email)
-                        .maybeSingle();
-
+                    const { data, error } = await _sb.rpc('staff_authenticate', {
+                        p_school_code: schoolCode, p_password: password
+                    });
                     if (error) throw error;
-                    if (!user) throw new Error('User not found.');
+                    if (!data || !data.length) throw new Error('Invalid school code or password.');
 
-                    // Plaintext password comparison (for production, use bcrypt)
-                    if (user.password !== password) {
-                        throw new Error('Invalid password.');
-                    }
+                    const row = data[0];
+                    currentUser = {
+                        id: row.staff_id,
+                        email: row.email,
+                        full_name: row.full_name,
+                        role: row.role,
+                        school_id: row.school_id,
+                        school_name: row.school_name,
+                        identityType: 'staff',
+                        _schoolCode: schoolCode,
+                        _password: password
+                    };
 
-                    if (!user.is_active) {
-                        throw new Error('Your account is deactivated. Contact admin.');
-                    }
-
-                    currentUser = user;
+                    _applySchoolBranding(currentUser.school_name);
+                    document.getElementById('loginPassword').value = '';
                     showApp();
                     setTimeout(() => updateSidebarUser(), 100);
                     loadAllData();
-                    document.getElementById('loginPassword').value = '';
-
-                    await DB.addActivity('Login', 'User ' + (user.full_name || user.email) + ' (ID: ' + user.id + ') logged in');
-
-                    Toast.show('Welcome, ' + (user.full_name || user.email) + '!', 'success');
+                    await DB.addActivity('Login', 'Staff ' + currentUser.full_name + ' (' + currentUser.role + ') logged in');
+                    Toast.show('Welcome, ' + currentUser.full_name + '!', 'success');
 
                 } catch (e) {
                     errorEl.textContent = e.message || 'Login failed.';
@@ -2624,33 +2770,60 @@
                 }
             },
 
+            // Path A: Org Admin — SSO triggered manually if tokens weren't in URL on load
+            triggerSSO() {
+                const errorEl = document.getElementById('authErrorSSO');
+                errorEl.classList.remove('visible');
+                const btn = document.getElementById('ssoBtn');
+                const spinner = document.getElementById('ssoSpinner');
+                const btnText = document.getElementById('ssoBtnText');
+
+                btn.disabled = true;
+                btnText.textContent = 'Checking tokens…';
+                spinner.style.display = 'inline-block';
+
+                // Try reading hash again in case page was navigated to with tokens
+                handleSSO().then(success => {
+                    if (!success) {
+                        errorEl.textContent = 'No SSO tokens found. Please return to Monitor Hub and click the Admin Panel link again.';
+                        errorEl.classList.add('visible');
+                        btn.disabled = false;
+                        btnText.textContent = 'Continue with SSO';
+                        spinner.style.display = 'none';
+                    }
+                });
+            },
+
             async logout() {
-                try {
-                    await _sb.auth.signOut();
-                } catch (e) {
-                    console.warn('SignOut error:', e);
+                if (currentUser) {
+                    await DB.addActivity('Logout', 'User ' + (currentUser.full_name || currentUser.email) + ' logged out');
                 }
 
-                if (currentUser) {
-                    await DB.addActivity('Logout', 'User ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ') logged out');
+                // Sign out of Supabase session if admin
+                if (currentUser?.identityType === 'admin') {
+                    try { await _sb.auth.signOut(); } catch (e) { console.warn('SignOut error:', e); }
                 }
 
                 currentUser = null;
                 document.getElementById('appShell').classList.add('hidden');
                 document.getElementById('authScreen').classList.remove('hidden');
-                document.getElementById('loginEmail').value = '';
+                // Reset login form
+                document.getElementById('loginSchoolCode').value = '';
                 document.getElementById('loginPassword').value = '';
                 const btn = document.getElementById('loginBtn');
                 btn.disabled = false;
                 document.getElementById('loginBtnText').textContent = 'Sign In';
                 document.getElementById('loginSpinner').style.display = 'none';
-                const errorEl = document.getElementById('authError');
-                errorEl.classList.remove('visible');
+                document.getElementById('authError').classList.remove('visible');
+                // Reset branding to neutral
+                document.getElementById('authSchoolName').textContent = 'LibraryOS';
+                document.title = 'Library Management System';
+                Auth.switchTab('staff');
             }
         };
 
-        document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.login(); });
-        document.getElementById('loginEmail').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.login(); });
+        document.getElementById('loginPassword').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.loginStaff(); });
+        document.getElementById('loginSchoolCode').addEventListener('keydown', e => { if (e.key === 'Enter') Auth.loginStaff(); });
 
         /* ═══════════════════════════════════════════════════
            NAVIGATION (unchanged)
@@ -2665,6 +2838,7 @@
                 lostbooks: 'Lost Books Records',
                 reports: 'Reports',
                 bulkimport: 'Bulk Import',
+                importlog: 'Import History',
                 settings: 'Settings'
             },
             go(section) {
@@ -2683,9 +2857,26 @@
                     issues: () => Issues.render(),
                     lostbooks: () => LostBooks.render(),
                     reports: () => Reports.render(),
+                    importlog: () => ImportLog.render(),
                     settings: () => Settings.render(),
                 };
                 if (refreshers[section]) refreshers[section]();
+                // Post identity to bulk import iframe when navigating there
+                if (section === 'bulkimport') {
+                    setTimeout(() => {
+                        const iframe = document.getElementById('bulkImportFrame');
+                        if (iframe && currentUser) {
+                            iframe.contentWindow.postMessage({
+                                type: 'BILLAN_IDENTITY',
+                                identityType: currentUser.identityType,
+                                schoolCode: currentUser._schoolCode || null,
+                                password: currentUser._password || null,
+                                schoolId: currentUser.school_id,
+                                schoolName: currentUser.school_name
+                            }, '*');
+                        }
+                    }, 500);
+                }
             }
         };
 
@@ -3661,34 +3852,39 @@
             },
 
             async changePw() {
-                if (!requireRole(['admin'], 'change passwords')) return;
+                if (!requireRole(['admin', 'librarian'], 'change password')) return;
                 const curr = document.getElementById('currPw').value;
                 const nw = document.getElementById('newPw').value;
                 const conf = document.getElementById('confPw').value;
 
                 if (!currentUser) { Toast.show('Not logged in.', 'error'); return; }
-
-                // Verify current password against app_users.password
-                if (currentUser.password !== curr) {
-                    Toast.show('Current password is incorrect', 'error');
-                    return;
-                }
                 if (nw.length < 6) { Toast.show('New password must be 6+ characters', 'error'); return; }
                 if (nw !== conf) { Toast.show('Passwords do not match', 'error'); return; }
 
                 try {
-                    const { error } = await _sb
-                        .from('app_users')
-                        .update({ password: nw })
-                        .eq('id', currentUser.id);
-                    if (error) throw error;
-
-                    // Update local object
-                    currentUser.password = nw;
+                    if (currentUser.identityType === 'admin') {
+                        // Admin path: update via Supabase Auth
+                        const { error } = await _sb.auth.updateUser({ password: nw });
+                        if (error) throw error;
+                    } else {
+                        // Staff path: verify current password first via RPC, then update
+                        if (currentUser._password !== curr) {
+                            Toast.show('Current password is incorrect', 'error');
+                            return;
+                        }
+                        const { error } = await _sb.rpc('staff_change_password', {
+                            p_school_code: currentUser._schoolCode,
+                            p_password: currentUser._password,
+                            p_new_password: nw
+                        });
+                        if (error) throw error;
+                        // Update in-memory credential so subsequent calls still work
+                        currentUser._password = nw;
+                    }
 
                     ['currPw','newPw','confPw'].forEach(id => document.getElementById(id).value = '');
                     Toast.show('Password changed!', 'success');
-                    await DB.addActivity('Password Change', '🔑 Password changed for ' + (currentUser.full_name || currentUser.email) + ' (ID: ' + currentUser.id + ')');
+                    await DB.addActivity('Password Change', '🔑 Password changed for ' + (currentUser.full_name || currentUser.email));
                 } catch (e) {
                     Toast.show('Error updating password: ' + e.message, 'error');
                 }
@@ -3701,10 +3897,12 @@
                     const [books, students, issues] = await Promise.all([
                         DB.getBooks(), DB.getStudents(), DB.getIssues()
                     ]);
+                    const schoolName = currentUser.school_name || 'School';
                     const backup = {
-                        version: '1.2',
+                        version: '2.0',
                         exported_at: new Date().toISOString(),
-                        school: 'G.S APAPEC MURAMBI',
+                        school_id: currentUser.school_id,
+                        school: schoolName,
                         books,
                         students,
                         issues: issues.map(i => ({
@@ -3727,7 +3925,7 @@
                     const blob = new Blob([json], { type: 'application/json' });
                     const a = document.createElement('a');
                     a.href = URL.createObjectURL(blob);
-                    a.download = 'apapec_lib_backup_' + U.today() + '.json';
+                    a.download = schoolName.replace(/\s+/g,'_') + '_lib_backup_' + U.today() + '.json';
                     a.click();
                     await DB.addActivity('Backup', '⬇️ System backup downloaded');
                     Toast.show('Backup downloaded successfully!', 'success');
@@ -3744,7 +3942,7 @@
 
                 Confirm.show(
                     'Restore Backup',
-                    'Records from the backup file will be inserted into the database. Existing records are NOT deleted first — you may get duplicates if data already exists. Continue?',
+                    'Records from the backup file will be inserted into the database. All inserted rows will be stamped with the current school ID. Existing records are NOT deleted first — you may get duplicates if data already exists. Continue?',
                     async () => {
                         try {
                             Toast.show('Reading backup file…', 'info');
@@ -3757,13 +3955,22 @@
                                 return;
                             }
 
+                            const schoolId = currentUser.school_id;
                             let booksOk = 0, studentsOk = 0, issuesOk = 0;
 
                             for (const b of backup.books) {
-                                try { const { book_id, _available, ...rest } = b; await _sb.from('books').insert([rest]); booksOk++; } catch {}
+                                try {
+                                    const { book_id, _available, ...rest } = b;
+                                    await _sb.from('books').insert([{ ...rest, school_id: schoolId }]);
+                                    booksOk++;
+                                } catch {}
                             }
                             for (const s of backup.students) {
-                                try { const { student_id, ...rest } = s; await _sb.from('students').insert([rest]); studentsOk++; } catch {}
+                                try {
+                                    const { student_id, ...rest } = s;
+                                    await _sb.from('students').insert([{ ...rest, school_id: schoolId }]);
+                                    studentsOk++;
+                                } catch {}
                             }
                             for (const i of backup.issues) {
                                 try {
@@ -3772,7 +3979,7 @@
                                     if (rest.condition_notes === undefined) rest.condition_notes = '';
                                     if (rest.lost === undefined) rest.lost = false;
                                     if (rest.lost_fee === undefined) rest.lost_fee = 0;
-                                    await _sb.from('book_issues').insert([rest]);
+                                    await _sb.from('book_issues').insert([{ ...rest, school_id: schoolId }]);
                                     issuesOk++;
                                 } catch {}
                             }
@@ -3809,25 +4016,41 @@
             async confirmReset() {
                 if (!requireRole(['admin'], 'reset the system')) return;
                 const entered = document.getElementById('resetPwInput').value;
-                // Verify against current user's password
                 if (!currentUser) { Toast.show('Not logged in.', 'error'); return; }
-                if (entered !== currentUser.password) {
-                    document.getElementById('resetPwFg').classList.add('has-error');
-                    Toast.show('Incorrect password — reset cancelled.', 'error');
-                    return;
+
+                // For staff path verify against in-memory password; admin path uses Supabase Auth (no stored pw)
+                if (currentUser.identityType === 'staff') {
+                    if (entered !== currentUser._password) {
+                        document.getElementById('resetPwFg').classList.add('has-error');
+                        Toast.show('Incorrect password — reset cancelled.', 'error');
+                        return;
+                    }
+                } else {
+                    // Admin SSO path — verify by re-authenticating with Supabase
+                    const { data: { user }, error: verifyErr } = await _sb.auth.getUser();
+                    if (verifyErr || !user) {
+                        document.getElementById('resetPwFg').classList.add('has-error');
+                        Toast.show('Could not verify admin identity — reset cancelled.', 'error');
+                        return;
+                    }
+                    // We trust the active session is still valid for admin — proceed
                 }
 
                 document.getElementById('resetPwFg').classList.remove('has-error');
                 closeModal('resetModal');
                 document.getElementById('resetPwInput').value = '';
 
+                const schoolId = currentUser.school_id;
+                if (!schoolId) { Toast.show('school_id not set — reset aborted for safety.', 'error'); return; }
+
                 try {
                     Toast.show('Resetting system… please wait.', 'warning');
 
+                    // CRITICAL: scope every delete to this school only (defense in depth on top of RLS)
                     const [r1, r2, r3] = await Promise.all([
-                        _sb.from('book_issues').delete().gte('issue_id', 0),
-                        _sb.from('students').delete().gte('student_id', 0),
-                        _sb.from('books').delete().gte('book_id', 0),
+                        _sb.from('book_issues').delete().eq('school_id', schoolId),
+                        _sb.from('students').delete().eq('school_id', schoolId),
+                        _sb.from('books').delete().eq('school_id', schoolId),
                     ]);
 
                     if (r1.error) throw r1.error;
@@ -3842,6 +4065,34 @@
                     Dashboard.render();
                 } catch (e) {
                     Toast.show('Reset failed: ' + e.message, 'error');
+                }
+            }
+        };
+
+        /* ═══════════════════════════════════════════════════
+           IMPORT HISTORY (read-only — admin + librarian)
+        ═══════════════════════════════════════════════════ */
+        const ImportLog = {
+            async render() {
+                const tbody = document.getElementById('importLogTbody');
+                if (!tbody) return;
+                tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--ink-muted)">Loading…</td></tr>`;
+                try {
+                    const rows = await Data.getImportLog();
+                    if (!rows.length) {
+                        tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--ink-muted)">No import history yet.</td></tr>`;
+                        return;
+                    }
+                    tbody.innerHTML = rows.map(r => `<tr>
+                        <td><span class="badge badge-teal" style="font-size:.7rem">${U.esc(r.batch_id || '—')}</span></td>
+                        <td><strong>${U.esc(r.target_table || '—')}</strong></td>
+                        <td>${U.esc(r.action || '—')}</td>
+                        <td><strong>${r.row_count ?? '—'}</strong></td>
+                        <td><small>${U.esc(r.actor_label || '—')}</small></td>
+                        <td><small>${r.created_at ? U.fmt(r.created_at) : '—'}</small></td>
+                    </tr>`).join('');
+                } catch (e) {
+                    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;padding:22px;color:var(--crimson)">Error loading import history: ${U.esc(e.message)}</td></tr>`;
                 }
             }
         };
@@ -4025,16 +4276,34 @@
         });
 
         /* ═══════════════════════════════════════════════════
-           INIT (UPDATED: runs SSO first)
+           INIT (UPDATED: runs SSO first, then shows staff login)
         ═══════════════════════════════════════════════════ */
         (async function init() {
             Theme.init();
             initSupabase();
 
+            // Set up bulk import iframe postMessage on load
+            const bulkFrame = document.getElementById('bulkImportFrame');
+            if (bulkFrame) {
+                bulkFrame.addEventListener('load', () => {
+                    if (currentUser) {
+                        bulkFrame.contentWindow.postMessage({
+                            type: 'BILLAN_IDENTITY',
+                            identityType: currentUser.identityType,
+                            schoolCode: currentUser._schoolCode || null,
+                            password: currentUser._password || null,
+                            schoolId: currentUser.school_id,
+                            schoolName: currentUser.school_name
+                        }, '*');
+                    }
+                });
+            }
+
             // Try SSO auto-login first
             const ssoSuccess = await handleSSO();
             if (!ssoSuccess) {
-                // If no SSO tokens, show normal login screen
+                // If no SSO tokens, show staff login screen
+                Auth.switchTab('staff');
                 document.getElementById('authScreen').classList.remove('hidden');
                 document.getElementById('appShell').classList.add('hidden');
             }
