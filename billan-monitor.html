@@ -914,11 +914,6 @@ function bootApp() {
   document.getElementById('si-email').textContent = currentAdminRow.email || currentUser.email;
   document.getElementById('si-uid').textContent   = currentUser.id;
    const { data: { session }, error } = await sb.auth.getSession();
-  if (error || !session) {
-    toast('Session expired. Please sign in again.', 'error');
-    doLogout();
-    return;
-  }
   // Load page
   loadDashboard();
   runChecks();
