@@ -4,7 +4,7 @@
     <meta name="monetag" content="20b486ce3d79bc3cec191aa56d09c11a">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LibraryOS — G.S APAPEC MURAMBI</title>
+    <title id="page-title-tag">LibraryOS — Monitor Hub</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2">
     </script>
     <script src="money.js">
@@ -235,6 +235,8 @@
             box-shadow: 0 32px 80px rgba(0, 0, 0, .45), 0 0 0 1px rgba(255, 255, 255, .04) inset;
             z-index: 1;
             animation: fadeUp .5s ease both .2s;
+            max-height: 92vh;
+            overflow-y: auto;
         }
         @keyframes fadeUp {
             from {
@@ -537,6 +539,57 @@
         .page-title {
             font-size: 15px;
             font-weight: 700;
+        }
+        .topbar-left {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            min-width: 0;
+        }
+        .super-admin-badge {
+            display: none;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            background: rgba(201, 162, 39, .15);
+            color: var(--gold);
+            font-size: 11px;
+            font-weight: 700;
+            border: 1px solid var(--gold);
+            white-space: nowrap;
+        }
+        .super-admin-badge i {
+            font-size: 13px;
+        }
+        .school-switcher-wrap {
+            display: none;
+            align-items: center;
+            gap: 8px;
+        }
+        .school-switcher-label {
+            font-size: 11px;
+            color: var(--text2);
+            font-weight: 600;
+            white-space: nowrap;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .school-switcher-select {
+            padding: 7px 10px;
+            border-radius: 8px;
+            border: 1px solid var(--gold);
+            background: var(--surface);
+            color: var(--text);
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            max-width: 200px;
+        }
+        .school-switcher-select:focus {
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(201, 162, 39, .18);
         }
         .topbar-right {
             display: flex;
@@ -1741,20 +1794,32 @@
                     <input type="password" id="login-password" class="form-input" placeholder="••••••••" autocomplete="current-password">
                 </div>
                 <button class="btn-primary" id="login-btn"><i class="ti ti-login"></i> Sign In</button>
-                <div class="auth-links">New here? <a id="show-register">Create an account</a></div>
+                <div class="auth-links">New here? <a id="show-register">Request account creation</a></div>
             </div>
             <div id="register-view" style="display:none;">
-                <div class="auth-title">Create account</div>
-                <div class="auth-sub">Join LibraryOS to get started</div>
+                <div class="auth-title">Request account creation</div>
+                <div class="auth-sub">Tell us about your school — an Org Admin account is created once a Super Admin approves your request.</div>
                 <div class="form-group">
-                    <label class="form-label">Email address</label>
+                    <label class="form-label">School name</label>
+                    <input type="text" id="reg-school-name" class="form-input" placeholder="e.g. G.S APAPEC MURAMBI">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Location</label>
+                    <input type="text" id="reg-location" class="form-input" placeholder="District, Province">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Head teacher's name</label>
+                    <input type="text" id="reg-headteacher" class="form-input" placeholder="Full name">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Contact email</label>
                     <input type="email" id="reg-email" class="form-input" placeholder="your@email.com">
                 </div>
                 <div class="form-group">
-                    <label class="form-label">Password</label>
-                    <input type="password" id="reg-password" class="form-input" placeholder="Min 6 characters">
+                    <label class="form-label">Contact phone</label>
+                    <input type="tel" id="reg-phone" class="form-input" placeholder="+250…">
                 </div>
-                <button class="btn-primary" id="register-btn"><i class="ti ti-user-plus"></i> Create Account</button>
+                <button class="btn-primary" id="request-btn"><i class="ti ti-send"></i> Submit Request</button>
                 <div class="auth-links">Already have an account? <a id="show-login">Sign in</a></div>
             </div>
         </div>
@@ -1799,7 +1864,7 @@
                     <div class="sb-avatar" id="sb-avatar">HM</div>
                     <div>
                         <div class="sb-user-name" id="sb-email">—</div>
-                        <div class="sb-user-role" id="sb-role-label">Headmaster</div>
+                        <div class="sb-user-role" id="sb-role-label">—</div>
                     </div>
                 </div>
                 <div class="sb-item" id="logout-btn" style="color:rgba(255,255,255,.48);"><i class="ti ti-logout"></i> Sign Out</div>
@@ -1808,8 +1873,15 @@
 
         <div class="main">
             <div class="topbar">
-                <div class="page-title" id="page-title">Dashboard</div>
+                <div class="topbar-left">
+                    <div class="page-title" id="page-title">Dashboard</div>
+                    <span class="super-admin-badge" id="super-admin-badge"><i class="ti ti-shield-lock"></i> Super Admin — Activity Not Logged</span>
+                </div>
                 <div class="topbar-right">
+                    <div class="school-switcher-wrap" id="school-switcher-wrap">
+                        <span class="school-switcher-label"><i class="ti ti-building"></i> Viewing:</span>
+                        <select id="school-switcher-select" class="school-switcher-select"></select>
+                    </div>
                     <button class="tbtn-admin" id="topbar-admin-btn" title="Go to Librarian System">
                         <i class="ti ti-layout-grid"></i> Admin Panel
                     </button>
@@ -2079,7 +2151,7 @@
                 </div>
                 <div class="um-notice">
                     <i class="ti ti-info-circle"></i>
-                    <span>Users created here can log in to both this monitoring hub <strong>and</strong> the Librarian System using the same credentials. Assign roles to control access.</span>
+                    <span>Users created here are Librarian/Viewer accounts for the Library Management System. They log in there using your School Code plus the password you set below. They cannot log into this Monitor Hub.</span>
                 </div>
                 <div class="um-grid">
                     <div class="um-form-card" id="um-form-card" style="display:none;">
@@ -2108,11 +2180,6 @@
                                     <span class="pill-icon">👁</span>
                                     <span class="pill-lbl">Viewer</span>
                                     <span class="pill-desc">Read-only access</span>
-                                </div>
-                                <div class="um-role-pill" data-role="admin">
-                                    <span class="pill-icon">🔑</span>
-                                    <span class="pill-lbl">Admin</span>
-                                    <span class="pill-desc">Full system access</span>
                                 </div>
                             </div>
                         </div>
@@ -2169,6 +2236,10 @@
         const PORTAL_URL = "https://manziallan998-maker.github.io/libmanagement/";
 
         let sb, user, currentSession;
+        let adminRow = null;
+        let currentSchoolId = null;
+        let isSuperAdminSession = false;
+        let SCHOOLS_CACHE = [];
         let BOOKS = [],
             STUDENTS = [],
             ISSUES = [];
@@ -2221,8 +2292,8 @@
         /* ══ INIT ══ */
         async function init() {
             sb = window.supabase.createClient(SB_URL, SB_KEY);
-            typewrite($('hero-l1'), 'G.S APAPEC MURAMBI', 55, 100, () => {
-                typewrite($('hero-l2'), 'LibraryOS', 80, 200, () => {
+            typewrite($('hero-l1'), 'LibraryOS', 55, 100, () => {
+                typewrite($('hero-l2'), 'Monitor Hub', 80, 200, () => {
                     typewrite($('hero-l3'), 'School Library Management System', 40, 100);
                 });
             });
@@ -2254,38 +2325,94 @@
             const em = user.email || '—';
             $('sb-email').textContent = em;
             $('sb-avatar').textContent = em.slice(0, 2).toUpperCase();
-            // Ensure app_users record exists for this auth user (password = null)
-            await ensureAppUser(user.id, user.email);
-            // Load user role
-            await fetchUsers();
-            const me = USERS_CACHE.find(u => u.id === user.id);
-            if (me) {
-                $('sb-role-label').textContent = (me.role || 'viewer').charAt(0).toUpperCase() + (me.role || 'viewer').slice(1);
-            }
-            // Log login
+
+            adminRow = await loadAdminIdentity();
+            if (!adminRow) return; // loadAdminIdentity already signed the user out & showed auth
+
+            isSuperAdminSession = (adminRow.role === 'super_admin');
+            currentSchoolId = adminRow.school_id || null; // Org Admin's own school; refined below for Super Admin
+            $('sb-role-label').textContent = isSuperAdminSession ? 'Super Admin' : 'Org Admin';
+            $('super-admin-badge').style.display = isSuperAdminSession ? 'inline-flex' : 'none';
+
+            // Login event itself must be invisible while operating as Super Admin (section 7).
+            // logActivity() already guards on isSuperAdminSession, so this call is safe either way.
+            // currentSchoolId is set above so an Org Admin's login is correctly tenant-tagged.
             await logActivity(user.id, 'Login', `User ${em} logged in`);
-            typewrite($('sb-brand-name'), 'G.S APAPEC MURAMBI', 55, 200, () => {
-                typewrite($('sb-brand-sub'), 'MONITORING HUB', 65, 100);
-            });
-            await loadAll();
+
+            if (isSuperAdminSession) {
+                $('school-switcher-wrap').style.display = 'flex';
+                await loadSchoolsForSwitcher();
+                if (!SCHOOLS_CACHE.length) {
+                    toast('No schools found in the platform yet.', 'warning');
+                    applyBranding('Super Admin');
+                    return;
+                }
+                await setActiveSchool(SCHOOLS_CACHE[0].id, SCHOOLS_CACHE[0].name);
+            } else {
+                $('school-switcher-wrap').style.display = 'none';
+                applyBranding(adminRow.schools?.name || 'LibraryOS');
+                await loadAll();
+            }
         }
 
-        async function ensureAppUser(uid, email) {
+        /* ══ ADMIN IDENTITY (replaces ensureAppUser — admins, not app_users, log in here) ══ */
+        async function loadAdminIdentity() {
             try {
-                const { data, error } = await sb.from('app_users').select('id').eq('id', uid).maybeSingle();
-                if (error) throw error;
-                if (!data) {
-                    const { error: insertError } = await sb.from('app_users').insert({
-                        id: uid,
-                        email: email,
-                        full_name: user.user_metadata?.full_name || null,
-                        role: 'viewer',
-                        is_active: true,
-                        password: null
-                    });
-                    if (insertError) console.warn('app_users auto-create failed:', insertError.message);
+                const { data: { user: authUser } } = await sb.auth.getUser();
+                const { data: adminData, error } = await sb.from('admins')
+                    .select('*, schools(name, school_code)')
+                    .eq('id', authUser.id)
+                    .maybeSingle();
+                if (error || !adminData) {
+                    await sb.auth.signOut();
+                    user = null;
+                    currentSession = null;
+                    toast('This account is not registered as an admin. Contact the platform owner.', 'error');
+                    showAuth();
+                    return null;
                 }
-            } catch (e) { console.warn('ensureAppUser:', e.message); }
+                return adminData;
+            } catch (e) {
+                await sb.auth.signOut();
+                user = null;
+                currentSession = null;
+                toast('Could not verify admin identity. Please sign in again.', 'error');
+                showAuth();
+                return null;
+            }
+        }
+
+        /* ══ BRANDING (dynamic per-school, section 6) ══ */
+        function applyBranding(schoolName) {
+            const name = schoolName || 'LibraryOS';
+            $('page-title-tag').textContent = `LibraryOS — ${name}`;
+            typewrite($('sb-brand-name'), name, 55, 200, () => {
+                typewrite($('sb-brand-sub'), 'MONITORING HUB', 65, 100);
+            });
+        }
+
+        /* ══ SUPER ADMIN: CROSS-TENANT SCHOOL SWITCHER (section 7) ══ */
+        async function loadSchoolsForSwitcher() {
+            try {
+                const { data, error } = await sb.from('schools').select('id, name, school_code').order('name', { ascending: true });
+                if (error) throw error;
+                SCHOOLS_CACHE = data || [];
+                $('school-switcher-select').innerHTML = SCHOOLS_CACHE.map(s =>
+                    `<option value="${s.id}">${s.name}${s.school_code ? ' (' + s.school_code + ')' : ''}</option>`
+                ).join('');
+            } catch (e) {
+                toast('Could not load schools list: ' + e.message, 'error');
+                SCHOOLS_CACHE = [];
+            }
+        }
+
+        async function setActiveSchool(schoolId, schoolName) {
+            currentSchoolId = schoolId;
+            isSuperAdminSession = (adminRow.role === 'super_admin');
+            const name = schoolName || SCHOOLS_CACHE.find(s => String(s.id) === String(schoolId))?.name || 'School';
+            if (isSuperAdminSession) $('school-switcher-select').value = schoolId;
+            applyBranding(name);
+            await loadAll();
         }
 
         async function doLogin() {
@@ -2308,22 +2435,33 @@
             }
         }
 
-        async function doRegister() {
-            const em = $('reg-email').value.trim(),
-                pw = $('reg-password').value;
-            if (!em || !pw || pw.length < 6) { toast('Email & password required (min 6 chars)', 'error'); return; }
-            const btn = $('register-btn');
+        async function submitRegistrationRequest() {
+            const schoolName = $('reg-school-name').value.trim();
+            const location = $('reg-location').value.trim();
+            const headTeacher = $('reg-headteacher').value.trim();
+            const email = $('reg-email').value.trim();
+            const phone = $('reg-phone').value.trim();
+            if (!schoolName || !email) { toast('School name and contact email are required', 'error'); return; }
+            const btn = $('request-btn');
             btn.disabled = true;
-            btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
+            btn.innerHTML = '<i class="ti ti-loader-2"></i> Submitting…';
             try {
-                const { error } = await sb.auth.signUp({ email: em, password: pw });
+                const { error } = await sb.from('registration_requests').insert({
+                    school_name: schoolName,
+                    location: location || null,
+                    head_teacher_name: headTeacher || null,
+                    contact_email: email,
+                    contact_phone: phone || null,
+                    establishment_letter_url: null // wire up file upload separately if desired
+                });
                 if (error) throw error;
-                toast('Account created! Please sign in.', 'success');
+                toast('Request submitted. You will be contacted once approved.', 'success');
+                ['reg-school-name', 'reg-location', 'reg-headteacher', 'reg-email', 'reg-phone'].forEach(id => $(id).value = '');
                 $('login-view').style.display = 'block';
                 $('register-view').style.display = 'none';
             } catch (e) { toast(e.message, 'error'); } finally {
                 btn.disabled = false;
-                btn.innerHTML = '<i class="ti ti-user-plus"></i> Create Account';
+                btn.innerHTML = '<i class="ti ti-send"></i> Submit Request';
             }
         }
 
@@ -2334,11 +2472,17 @@
             await sb.auth.signOut();
             user = null;
             currentSession = null;
+            adminRow = null;
+            currentSchoolId = null;
+            isSuperAdminSession = false;
+            SCHOOLS_CACHE = [];
             BOOKS = [];
             STUDENTS = [];
             ISSUES = [];
             USERS_CACHE = [];
             ACTIVITY_LOGS_CACHE = [];
+            $('school-switcher-wrap').style.display = 'none';
+            $('super-admin-badge').style.display = 'none';
             toast('Signed out', 'success');
             setTimeout(showAuth, 350);
         }
@@ -2373,22 +2517,22 @@
         }
 
         async function fetchBooks() {
-            const { data, error } = await sb.from('books').select('book_id,book_category,curriculum,subject,book_publisher,grade,pages,tot').order('subject', { ascending: true });
+            const { data, error } = await sb.from('books').select('book_id,book_category,curriculum,subject,book_publisher,grade,pages,tot').eq('school_id', currentSchoolId).order('subject', { ascending: true });
             if (error) throw new Error('books: ' + error.message);
             BOOKS = data || [];
         }
 
         async function fetchStudents() {
-            const { data, error } = await sb.from('students').select('*');
+            const { data, error } = await sb.from('students').select('*').eq('school_id', currentSchoolId);
             if (error) throw new Error('students: ' + error.message);
             STUDENTS = data || [];
         }
 
         async function fetchIssues() {
             // FIXED: use issue_date instead of created_at
-            const { data, error } = await sb.from('book_issues').select('*').order('issue_date', { ascending: false }).limit(2000);
+            const { data, error } = await sb.from('book_issues').select('*').eq('school_id', currentSchoolId).order('issue_date', { ascending: false }).limit(2000);
             if (error) {
-                const { data: d2, error: e2 } = await sb.from('book_issues').select('*').limit(2000);
+                const { data: d2, error: e2 } = await sb.from('book_issues').select('*').eq('school_id', currentSchoolId).limit(2000);
                 if (e2) throw new Error('book_issues: ' + e2.message);
                 ISSUES = d2 || [];
             } else ISSUES = data || [];
@@ -2397,18 +2541,18 @@
         /* ══ USER MANAGEMENT (FULL CRUD) ══ */
         async function fetchUsers() {
             try {
-                const { data, error } = await sb.from('app_users').select('*').order('created_at', { ascending: false });
+                const { data, error } = await sb.from('app_users').select('*').eq('school_id', currentSchoolId).order('created_at', { ascending: false });
                 if (error) throw error;
                 USERS_CACHE = data || [];
             } catch (e) { USERS_CACHE = []; }
         }
 
-        // ✅ CREATE USER - NO AUTH USER CREATED, ONLY app_users INSERT
+        // ✅ CREATE USER - NO AUTH USER CREATED, ONLY app_users INSERT. Librarian/Viewer only — never Admin.
         async function createUser() {
             const email = $('um-email').value.trim();
             const password = $('um-password').value;
             const fullName = $('um-fullname').value.trim();
-            const role = umSelectedRole;
+            const role = umSelectedRole === 'viewer' ? 'viewer' : 'librarian';
 
             if (!email) { toast('Email is required', 'error'); return; }
             if (!password || password.length < 6) { toast('Password must be at least 6 characters', 'error'); return; }
@@ -2418,12 +2562,14 @@
             btn.innerHTML = '<i class="ti ti-loader-2"></i> Creating…';
 
             try {
-                // Direct insert into app_users (id auto-generated, plain text password)
+                // Direct insert into app_users (id auto-generated, plain text password). school_id comes
+                // from the logged-in admin's tenant — never client-editable.
                 const { data, error } = await sb.from('app_users').insert({
                     email: email,
                     password: password, // plain text as requested
                     full_name: fullName || null,
                     role: role,
+                    school_id: currentSchoolId,
                     is_active: true
                 }).select();
 
@@ -2465,7 +2611,7 @@
 
         async function saveUserEdit() {
             const fullName = $('um-fullname').value.trim();
-            const role = umSelectedRole;
+            const role = umSelectedRole === 'viewer' ? 'viewer' : 'librarian';
             const newPassword = $('um-password').value.trim();
 
             const btn = $('um-submit-btn');
@@ -2478,7 +2624,7 @@
                     updates.password = newPassword; // update password only if provided
                 }
 
-                const { error } = await sb.from('app_users').update(updates).eq('id', umEditId);
+                const { error } = await sb.from('app_users').update(updates).eq('id', umEditId).eq('school_id', currentSchoolId);
                 if (error) throw error;
                 toast('User updated successfully', 'success');
                 const u = USERS_CACHE.find(x => x.id === umEditId);
@@ -2514,7 +2660,7 @@
                     return;
                 }
 
-                const { error: deleteError } = await sb.from('app_users').delete().eq('id', userId);
+                const { error: deleteError } = await sb.from('app_users').delete().eq('id', userId).eq('school_id', currentSchoolId);
                 if (deleteError) throw deleteError;
 
                 toast(`User "${u.email}" deleted permanently.`, 'success');
@@ -2532,7 +2678,7 @@
             const label = u?.is_active ? 'deactivate' : 're-activate';
             if (!confirm(`Are you sure you want to ${label} this user?\n${u?.email}`)) return;
             try {
-                const { error } = await sb.from('app_users').update({ is_active: !u.is_active }).eq('id', userId);
+                const { error } = await sb.from('app_users').update({ is_active: !u.is_active }).eq('id', userId).eq('school_id', currentSchoolId);
                 if (error) throw error;
                 toast(`User ${label}d`, 'success');
                 await logActivity(user.id, label === 'deactivate' ? 'Deactivate User' : 'Activate User',
@@ -2613,11 +2759,16 @@
         }
 
         /* ══ ACTIVITY LOGGING ══ */
+        // Centralized Super-Admin no-trace guard: every call site in this file routes through here,
+        // so a Super Admin's actions (including their own Login event) never produce activity_logs rows
+        // for the school they're viewing. A single chokepoint is harder to accidentally miss than
+        // repeating the same `if (!isSuperAdminSession)` check at every call site.
         async function logActivity(userId, action, details) {
-            if (!userId) return;
+            if (!userId || isSuperAdminSession) return;
             try {
                 const { error } = await sb.from('activity_logs').insert({
                     user_id: userId,
+                    school_id: currentSchoolId,
                     action: action,
                     details: details || ''
                 });
@@ -2629,10 +2780,12 @@
             try {
                 const { data, error } = await sb.from('activity_logs')
                     .select('*, app_users!activity_logs_user_id_fkey(email, full_name, role)')
+                    .eq('school_id', currentSchoolId)
                     .order('created_at', { ascending: false });
                 if (error) {
                     const { data: d2, error: e2 } = await sb.from('activity_logs')
                         .select('*')
+                        .eq('school_id', currentSchoolId)
                         .order('created_at', { ascending: false });
                     if (e2) throw e2;
                     ACTIVITY_LOGS_CACHE = d2 || [];
@@ -3207,10 +3360,10 @@
         /* ══ DB STATUS ══ */
         async function renderDbStatus() {
             $('db-auth-st').innerHTML = `<span class="badge b-success"><i class="ti ti-check"></i> Active</span>`;
-            $('db-auth-dt').textContent = user?.email || '—';
+            $('db-auth-dt').textContent = (user?.email || '—') + (isSuperAdminSession ? ' · Super Admin' : ' · Org Admin');
             async function check(tbl, stId, dtId) {
                 try {
-                    const { count, error } = await sb.from(tbl).select('*', { count: 'exact', head: true });
+                    const { count, error } = await sb.from(tbl).select('*', { count: 'exact', head: true }).eq('school_id', currentSchoolId);
                     if (error) throw error;
                     $(stId).innerHTML = `<span class="badge b-success"><i class="ti ti-check"></i> Ready</span>`;
                     $(dtId).textContent = `${count} records`;
@@ -3284,12 +3437,17 @@
         /* ══ BIND ══ */
         function bindListeners() {
             $('login-btn').addEventListener('click', doLogin);
-            $('register-btn').addEventListener('click', doRegister);
+            $('request-btn').addEventListener('click', submitRegistrationRequest);
             $('logout-btn').addEventListener('click', doLogout);
             $('show-register').addEventListener('click', () => { $('login-view').style.display = 'none';
                 $('register-view').style.display = 'block'; });
             $('show-login').addEventListener('click', () => { $('login-view').style.display = 'block';
                 $('register-view').style.display = 'none'; });
+            $('school-switcher-select').addEventListener('change', e => {
+                const id = e.target.value;
+                const s = SCHOOLS_CACHE.find(x => String(x.id) === String(id));
+                setActiveSchool(id, s?.name);
+            });
             document.querySelectorAll('.sb-item[data-page]').forEach(el => el.addEventListener('click', () => goTo(el.dataset
                 .page)));
             document.querySelectorAll('[data-goto]').forEach(el => el.addEventListener('click', () => goTo(el.dataset.goto)));
