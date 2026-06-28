@@ -913,8 +913,7 @@ function bootApp() {
   // Settings panel
   document.getElementById('si-email').textContent = currentAdminRow.email || currentUser.email;
   document.getElementById('si-uid').textContent   = currentUser.id;
-   const { data: { session }, error } = await sb.auth.getSession();
-  // Load page
+  // Load page (fires off the async tasks)
   loadDashboard();
   runChecks();
 }
