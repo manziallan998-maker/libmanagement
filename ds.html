@@ -2516,11 +2516,11 @@
                 const { access_token, refresh_token } = data.session;
                 const targetUrl = new URL(PORTAL_URL);
                 targetUrl.hash = [
-                    `access_token=${encodeURIComponent(access_token)}`,
-                    `refresh_token=${encodeURIComponent(refresh_token)}`,
-                    `token_type=bearer`,
-                    `type=magiclink`
-                ].join('&');
+                      `access_token=${access_token}`,
+                      `refresh_token=${refresh_token}`,
+                      `token_type=bearer`,
+                     `type=magiclink`
+                 ].join('&');
                 toast('Opening Admin Panel — your session is being transferred…', 'success');
                 window.open(targetUrl.toString(), '_blank');
             } catch (e) { toast('Could not open portal: ' + e.message, 'error'); }
