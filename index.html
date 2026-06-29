@@ -2171,8 +2171,10 @@
 
         /* ─── SSO Auto‑Login (Org Admin path — from Monitor Hub) ─── */
         async function handleSSO() {
+            // Clear hash immediately so it never re-triggers on refresh,
+            // but save the values first before anything can strip them
             const hash = window.location.hash;
-            if (!hash) return false;
+            if (!hash || hash.length < 10) return false;
 
             const params = new URLSearchParams(hash.substring(1));
             const access_token = params.get('access_token');
@@ -2180,76 +2182,146 @@
 
             if (!access_token || !refresh_token) return false;
 
+            // Remove hash from URL cleanly NOW — before any async work that could fail
+            window.history.replaceState({}, document.title, window.location.pathname);
+
+            // Show a loading state on the auth screen so user knows something is happening
+            const authH1 = document.getElementById('authSchoolName');
+            if (authH1) authH1.textContent = 'Signing you in…';
+
             try {
-                const { data: { session }, error: sessionError } = await _sb.auth.setSession({
+                // Step 1: Set session with the tokens from Monitor Hub
+                const { data: sessionData, error: sessionError } = await _sb.auth.setSession({
                     access_token,
                     refresh_token
                 });
-                if (sessionError) throw sessionError;
-                if (!session) throw new Error('No session returned from setSession');
-
-                const { data: { user: authUser }, error: userError } = await _sb.auth.getUser();
-                if (userError) throw userError;
-                if (!authUser) throw new Error('No authenticated user');
-
-                // Look up in admins table — never auto-create
-                const { data: adminRow, error: adminError } = await _sb
-                    .from('admins')
-                    .select('*, schools(name, school_code)')
-                    .eq('id', authUser.id)
-                    .maybeSingle();
-
-                if (adminError) throw adminError;
-
-                if (!adminRow) {
-                    Toast.show('Not authorized for this Library System.', 'error');
-                    window.location.href = window.location.pathname;
+                if (sessionError) {
+                    console.error('SSO setSession error:', sessionError);
+                    if (authH1) authH1.textContent = 'LibraryOS';
+                    Toast.show('SSO failed: ' + sessionError.message, 'error');
+                    return false;
+                }
+                if (!sessionData?.session) {
+                    console.error('SSO: no session returned');
+                    if (authH1) authH1.textContent = 'LibraryOS';
+                    Toast.show('SSO failed: no session returned. Try again.', 'error');
                     return false;
                 }
 
+                // Step 2: Get the authenticated user
+                const { data: { user: authUser }, error: userError } = await _sb.auth.getUser();
+                if (userError || !authUser) {
+                    console.error('SSO getUser error:', userError);
+                    if (authH1) authH1.textContent = 'LibraryOS';
+                    Toast.show('SSO failed: could not get user. Try again.', 'error');
+                    return false;
+                }
+
+                // Step 3: Look up admins table — plain select first, no join
+                // (avoids crash if FK relationship not registered in Supabase schema cache)
+                const { data: adminRow, error: adminError } = await _sb
+                    .from('admins')
+                    .select('*')
+                    .eq('id', authUser.id)
+                    .maybeSingle();
+
+                if (adminError) {
+                    console.error('SSO admins lookup error:', adminError);
+                    if (authH1) authH1.textContent = 'LibraryOS';
+                    Toast.show('SSO failed: ' + adminError.message, 'error');
+                    return false;
+                }
+
+                if (!adminRow) {
+                    console.error('SSO: no admin row found for uid', authUser.id);
+                    if (authH1) authH1.textContent = 'LibraryOS';
+                    Toast.show('Not authorized. Your account is not registered as an admin for this library.', 'error');
+                    return false;
+                }
+
+                // Step 4: Fetch school name separately (safe — never blocks login)
+                let schoolName = 'School';
+                let schoolCode = null;
+                if (adminRow.school_id !== null && adminRow.school_id !== undefined) {
+                    try {
+                        const { data: schoolData } = await _sb
+                            .from('schools')
+                            .select('name, school_code')
+                            .eq('id', adminRow.school_id)
+                            .maybeSingle();
+                        if (schoolData) {
+                            schoolName = schoolData.name || 'School';
+                            schoolCode = schoolData.school_code || null;
+                        }
+                    } catch (schoolErr) {
+                        console.warn('SSO: could not fetch school name (non-fatal):', schoolErr);
+                    }
+                }
+
+                // Step 5: Build currentUser
                 currentUser = {
                     id: adminRow.id,
                     email: adminRow.email || authUser.email,
                     full_name: adminRow.full_name || authUser.user_metadata?.full_name || authUser.email,
                     role: adminRow.role || 'admin',
                     school_id: adminRow.school_id,
-                    school_name: adminRow.schools?.name || adminRow.school_name || 'School',
+                    school_name: schoolName,
+                    school_code: schoolCode,
                     identityType: 'admin'
                 };
 
-                _applySchoolBranding(currentUser.school_name);
+                // Step 6: Apply branding safely
+                try { _applySchoolBranding(currentUser.school_name); } catch(brandErr) {
+                    console.warn('Branding error (non-fatal):', brandErr);
+                }
+
+                // Step 7: Show app
                 showApp();
                 setTimeout(() => updateSidebarUser(), 100);
                 loadAllData();
-                await DB.addActivity('Login', 'Admin ' + currentUser.full_name + ' logged in via SSO');
-                Toast.show('Welcome, ' + currentUser.full_name + '!', 'success');
 
-                window.history.replaceState({}, document.title, window.location.pathname);
+                // Step 8: Log activity (non-fatal — never block login)
+                try { await DB.addActivity('Login', 'Admin ' + currentUser.full_name + ' logged in via SSO'); } catch(_) {}
+
+                Toast.show('Welcome, ' + currentUser.full_name + '!', 'success');
                 return true;
 
             } catch (e) {
-                console.error('SSO error:', e);
+                // Last resort catch — show error on screen, do NOT redirect
+                console.error('SSO unexpected error:', e);
+                if (authH1) authH1.textContent = 'LibraryOS';
                 Toast.show('SSO login failed: ' + e.message, 'error');
-                window.location.href = window.location.pathname;
                 return false;
             }
         }
 
         function _applySchoolBranding(schoolName) {
             if (!schoolName) return;
-            document.title = schoolName + ' — Library System';
-            const authH1 = document.getElementById('authSchoolName');
-            if (authH1) authH1.textContent = schoolName;
-            const sidebarLogo = document.getElementById('sidebarSchoolName');
-            if (sidebarLogo) {
-                // preserve the <span> child
-                const span = sidebarLogo.querySelector('span');
-                sidebarLogo.childNodes[0].textContent = schoolName;
-                if (!span) {
-                    const s = document.createElement('span');
-                    s.textContent = 'Library Management System';
-                    sidebarLogo.appendChild(s);
+            try {
+                document.title = schoolName + ' — Library System';
+
+                const authH1 = document.getElementById('authSchoolName');
+                if (authH1) authH1.textContent = schoolName;
+
+                const sidebarLogo = document.getElementById('sidebarSchoolName');
+                if (sidebarLogo) {
+                    // Safely rebuild inner content — never assume childNodes[0] exists
+                    const span = sidebarLogo.querySelector('span');
+                    // Remove all non-span child nodes first
+                    Array.from(sidebarLogo.childNodes).forEach(node => {
+                        if (node.nodeType === Node.TEXT_NODE) node.remove();
+                    });
+                    // Prepend the school name as a text node before the span
+                    sidebarLogo.insertBefore(document.createTextNode(schoolName), sidebarLogo.firstChild);
+                    // Ensure the subtitle span exists
+                    if (!span) {
+                        const s = document.createElement('span');
+                        s.textContent = 'Library Management System';
+                        sidebarLogo.appendChild(s);
+                    }
                 }
+            } catch(e) {
+                console.warn('_applySchoolBranding error (non-fatal):', e);
             }
         }
 
