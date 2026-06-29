@@ -830,7 +830,7 @@
 /* ── SUPABASE CLIENT ── */
 const SUPABASE_URL  = 'https://vqonijhvylgjdmjtsmtg.supabase.co';
 const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InZxb25pamh2eWxnamRtanRzbXRnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODI1NTc4MDMsImV4cCI6MjA5ODEzMzgwM30.25Ng6qUiFnTiP6kiXD0i2Bb3xk6fVgF2PMFydDN0o3k';
-const MONITOR_HUB_URL 'https://manziallan998-maker.github.io/libmanagement/ds.html'; // update to your Monitor Hub URL
+const MONITOR_HUB_URL = 'https://manziallan998-maker.github.io/libmanagement/ds.html'; // update to your Monitor Hub URL
 let sb;
 document.addEventListener('DOMContentLoaded', () => {
   sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
@@ -840,6 +840,7 @@ document.addEventListener('DOMContentLoaded', () => {
 /* ── STATE ── */
 let currentUser = null;
 let currentAdminRow = null;
+let isSuperAdminSession = false; 
 let schoolsData = [];        // from platform_school_stats()
 let filteredSchools = [];
 let reqCurrentTab = 'pending';
@@ -874,6 +875,7 @@ async function doLogin() {
     }
     currentUser = data.user;
     currentAdminRow = adminRow;
+    isSuperAdminSession = (adminRow.role === 'super_admin');
     bootApp();
   } catch (e) {
     err.textContent = e.message;
