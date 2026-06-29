@@ -2302,14 +2302,31 @@
             });
             try {
                 const { data: { session } } = await sb.auth.getSession();
-                if (session?.user) { user = session.user;
+                if (session?.user) {
+                    user = session.user;
                     currentSession = session;
-                    showApp(); } else showAuth();
-            } catch (e) { showAuth(); }
+                    try {
+                        await showApp();
+                    } catch (appErr) {
+                        console.error('showApp failed:', appErr);
+                        showAuth();
+                    }
+                } else {
+                    showAuth();
+                }
+            } catch (e) {
+                console.error('init session check failed:', e);
+                showAuth();
+            }
 
-            sb.auth.onAuthStateChange((_event, session) => {
-                if (session) { user = session.user;
-                    currentSession = session; }
+            sb.auth.onAuthStateChange((event, session) => {
+                if (session) {
+                    user = session.user;
+                    currentSession = session;
+                } else if (event === 'SIGNED_OUT') {
+                    user = null;
+                    currentSession = null;
+                }
             });
 
             bindListeners();
@@ -2322,7 +2339,7 @@
         async function showApp() {
             $('auth-screen').style.display = 'none';
             $('app').classList.add('visible');
-            const em = user.email || '—';
+            const em = user?.email || '—';
             $('sb-email').textContent = em;
             $('sb-avatar').textContent = em.slice(0, 2).toUpperCase();
 
@@ -2330,17 +2347,20 @@
             if (!adminRow) return; // loadAdminIdentity already signed the user out & showed auth
 
             isSuperAdminSession = (adminRow.role === 'super_admin');
-            currentSchoolId = adminRow.school_id || null; // Org Admin's own school; refined below for Super Admin
-            $('sb-role-label').textContent = isSuperAdminSession ? 'Super Admin' : 'Org Admin';
-            $('super-admin-badge').style.display = isSuperAdminSession ? 'inline-flex' : 'none';
+            // Org Admin's own school_id — null for Super Admins (they pick from switcher)
+            currentSchoolId = adminRow.school_id || null;
 
-            // Login event itself must be invisible while operating as Super Admin (section 7).
-            // logActivity() already guards on isSuperAdminSession, so this call is safe either way.
-            // currentSchoolId is set above so an Org Admin's login is correctly tenant-tagged.
-            await logActivity(user.id, 'Login', `User ${em} logged in`);
+            const roleLbl = $('sb-role-label');
+            if (roleLbl) roleLbl.textContent = isSuperAdminSession ? 'Super Admin' : 'Org Admin';
+            const saBadge = $('super-admin-badge');
+            if (saBadge) saBadge.style.display = isSuperAdminSession ? 'inline-flex' : 'none';
+
+            // Log login (logActivity guards against Super Admin creating school-level noise)
+            await logActivity(user.id, 'Login', `User ${em} logged in`).catch(() => {});
 
             if (isSuperAdminSession) {
-                $('school-switcher-wrap').style.display = 'flex';
+                const swWrap = $('school-switcher-wrap');
+                if (swWrap) swWrap.style.display = 'flex';
                 await loadSchoolsForSwitcher();
                 if (!SCHOOLS_CACHE.length) {
                     toast('No schools found in the platform yet.', 'warning');
@@ -2349,7 +2369,8 @@
                 }
                 await setActiveSchool(SCHOOLS_CACHE[0].id, SCHOOLS_CACHE[0].name);
             } else {
-                $('school-switcher-wrap').style.display = 'none';
+                const swWrap = $('school-switcher-wrap');
+                if (swWrap) swWrap.style.display = 'none';
                 applyBranding(adminRow.schools?.name || 'LibraryOS');
                 await loadAll();
             }
@@ -2428,10 +2449,14 @@
         }
 
         async function setActiveSchool(schoolId, schoolName) {
+            if (!schoolId) { toast('Invalid school selected.', 'error'); return; }
             currentSchoolId = schoolId;
-            isSuperAdminSession = (adminRow.role === 'super_admin');
+            isSuperAdminSession = (adminRow?.role === 'super_admin');
             const name = schoolName || SCHOOLS_CACHE.find(s => String(s.id) === String(schoolId))?.name || 'School';
-            if (isSuperAdminSession) $('school-switcher-select').value = schoolId;
+            if (isSuperAdminSession) {
+                const switcher = $('school-switcher-select');
+                if (switcher) switcher.value = schoolId;
+            }
             applyBranding(name);
             await loadAll();
         }
@@ -2487,10 +2512,13 @@
         }
 
         async function doLogout() {
-            const uid = user?.id;
-            const em = user?.email || '—';
-            await logActivity(uid, 'Logout', `User ${em} logged out`);
-            await sb.auth.signOut();
+            try {
+                const uid = user?.id;
+                const em = user?.email || '—';
+                if (uid) await logActivity(uid, 'Logout', `User ${em} logged out`).catch(() => {});
+                await sb.auth.signOut().catch(() => {});
+            } catch (_) {}
+            // Reset all state
             user = null;
             currentSession = null;
             adminRow = null;
@@ -2502,8 +2530,12 @@
             ISSUES = [];
             USERS_CACHE = [];
             ACTIVITY_LOGS_CACHE = [];
-            $('school-switcher-wrap').style.display = 'none';
-            $('super-admin-badge').style.display = 'none';
+            if (borrowChart) { borrowChart.destroy(); borrowChart = null; }
+            if (catChart) { catChart.destroy(); catChart = null; }
+            const sw = $('school-switcher-wrap');
+            if (sw) sw.style.display = 'none';
+            const sab = $('super-admin-badge');
+            if (sab) sab.style.display = 'none';
             toast('Signed out', 'success');
             setTimeout(showAuth, 350);
         }
@@ -2511,16 +2543,22 @@
         /* ══ ADMIN PORTAL SSO ══ */
         async function launchAdminPortal() {
             try {
-                const { data, error } = await sb.auth.getSession();
-                if (error || !data.session) throw new Error('No active session. Please sign in again.');
-                const { access_token, refresh_token } = data.session;
+                // Refresh session first so tokens are fresh (avoids expired token issues)
+                let session = null;
+                try {
+                    const { data: r } = await sb.auth.refreshSession();
+                    if (r?.session) session = r.session;
+                } catch (_) {}
+                if (!session) {
+                    const { data, error } = await sb.auth.getSession();
+                    if (error || !data?.session) throw new Error('No active session. Please sign in again.');
+                    session = data.session;
+                }
+                const { access_token, refresh_token } = session;
+                // CRITICAL FIX: Do NOT encodeURIComponent — JWTs only use safe chars and
+                // encoding breaks setSession() on the library side (was reading garbled tokens)
                 const targetUrl = new URL(PORTAL_URL);
-                targetUrl.hash = [
-                      `access_token=${access_token}`,
-                      `refresh_token=${refresh_token}`,
-                      `token_type=bearer`,
-                     `type=magiclink`
-                 ].join('&');
+                targetUrl.hash = `access_token=${access_token}&refresh_token=${refresh_token}&token_type=bearer&type=magiclink`;
                 toast('Opening Admin Panel — your session is being transferred…', 'success');
                 window.open(targetUrl.toString(), '_blank');
             } catch (e) { toast('Could not open portal: ' + e.message, 'error'); }
@@ -2563,9 +2601,16 @@
         async function fetchUsers() {
             try {
                 const { data, error } = await sb.from('app_users').select('*').eq('school_id', currentSchoolId).order('created_at', { ascending: false });
-                if (error) throw error;
-                USERS_CACHE = data || [];
-            } catch (e) { USERS_CACHE = []; }
+                if (error) {
+                    console.warn('fetchUsers (app_users) error:', error.message);
+                    USERS_CACHE = [];
+                } else {
+                    USERS_CACHE = data || [];
+                }
+            } catch (e) {
+                console.warn('fetchUsers failed:', e.message);
+                USERS_CACHE = [];
+            }
         }
 
         // ✅ CREATE USER - NO AUTH USER CREATED, ONLY app_users INSERT. Librarian/Viewer only — never Admin.
@@ -2661,7 +2706,7 @@
             }
         }
 
-        // ✅ DELETE USER - requires admin password verification
+        // ✅ DELETE USER - requires admin password verification (uses temp client to avoid disrupting current session)
         async function deleteUser(userId) {
             const u = USERS_CACHE.find(x => x.id === userId);
             if (!u) return;
@@ -2672,10 +2717,11 @@
             if (!password) { toast('Deletion cancelled.', 'info'); return; }
 
             try {
-                const { error: authError } = await sb.auth.signInWithPassword({
-                    email: user.email,
-                    password: password
-                });
+                // Use a separate non-persistent client to verify password
+                // so the current admin session is NOT disrupted or signed out
+                const tempSb = window.supabase.createClient(SB_URL, SB_KEY, { auth: { persistSession: false, autoRefreshToken: false } });
+                const { error: authError } = await tempSb.auth.signInWithPassword({ email: user.email, password });
+                await tempSb.auth.signOut().catch(() => {});
                 if (authError) {
                     toast('Incorrect password. Deletion cancelled.', 'error');
                     return;
@@ -2799,24 +2845,29 @@
 
         async function fetchActivityLogs() {
             try {
-                const { data, error } = await sb.from('activity_logs')
-                    .select('*, app_users!activity_logs_user_id_fkey(email, full_name, role)')
+                // Try with join first; if FK name differs, fall back to plain select + local join
+                let logs = null;
+                const { data: d1, error: e1 } = await sb.from('activity_logs')
+                    .select('*, app_users(email, full_name, role)')
                     .eq('school_id', currentSchoolId)
-                    .order('created_at', { ascending: false });
-                if (error) {
+                    .order('created_at', { ascending: false })
+                    .limit(500);
+                if (!e1) {
+                    logs = d1 || [];
+                } else {
                     const { data: d2, error: e2 } = await sb.from('activity_logs')
                         .select('*')
                         .eq('school_id', currentSchoolId)
-                        .order('created_at', { ascending: false });
+                        .order('created_at', { ascending: false })
+                        .limit(500);
                     if (e2) throw e2;
-                    ACTIVITY_LOGS_CACHE = d2 || [];
-                    ACTIVITY_LOGS_CACHE = ACTIVITY_LOGS_CACHE.map(log => {
-                        const u = USERS_CACHE.find(x => x.id === log.user_id);
-                        return { ...log, _user: u || null };
-                    });
-                } else {
-                    ACTIVITY_LOGS_CACHE = data || [];
+                    logs = d2 || [];
                 }
+                // Enrich with local USERS_CACHE for any rows missing joined user data
+                ACTIVITY_LOGS_CACHE = logs.map(log => {
+                    const localUser = USERS_CACHE.find(x => x.id === log.user_id) || null;
+                    return { ...log, _user: log.app_users || localUser };
+                });
             } catch (e) {
                 console.warn('fetchActivityLogs:', e.message);
                 ACTIVITY_LOGS_CACHE = [];
@@ -3400,6 +3451,8 @@
                 check('app_users', 'db-appusers-st', 'db-appusers-dt'),
                 check('activity_logs', 'db-actlogs-st', 'db-actlogs-dt'),
             ]);
+            // Also update auth detail to show school context
+            $('db-auth-dt').textContent = (user?.email || '—') + (isSuperAdminSession ? ' · Super Admin' : ' · Org Admin') + (currentSchoolId ? ' · School ID: ' + String(currentSchoolId).slice(0,8) : '')
             if (ISSUES.length) { $('db-cols-dt').textContent = Object.keys(ISSUES[0]).join(' · '); } else { $('db-cols-dt')
                     .textContent = 'No issues data loaded'; }
         }
