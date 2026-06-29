@@ -1785,7 +1785,7 @@
                 <section class="section" id="section-bulkimport">
                     <div class="sec-header"><h2>🤖 AI IMPORT</h2></div>
                     <div style="border:1px solid var(--border);border-radius:var(--r-lg);overflow:hidden;box-shadow:var(--shadow-md)">
-                        <iframe id="bulkImportFrame" src="https://manziallan998-maker.github.io/file-detector--ai/" style="width:100%;height:calc(100vh - 140px);min-height:600px;border:none;display:block" allow="clipboard-read; clipboard-write" title="AI Bulk Import Tool"></iframe>
+                        <iframe id="bulkImportFrame" src="https://manziallan998-maker.github.io/libmanagement/file-detector-ai.html" style="width:100%;height:calc(100vh - 140px);min-height:600px;border:none;display:block" allow="clipboard-read; clipboard-write" title="AI Bulk Import Tool"></iframe>
                     </div>
                 </section>
 
@@ -2180,6 +2180,12 @@
 
             if (!access_token || !refresh_token) return false;
 
+            // Scrub the token from the address bar immediately — never leave it
+            // sitting in the URL while we do async work, and never rely on a
+            // page reload to "clean up" later (that's what was stripping it
+            // and looking like a silent failure).
+            window.history.replaceState({}, document.title, window.location.pathname);
+
             try {
                 const { data: { session }, error: sessionError } = await _sb.auth.setSession({
                     access_token,
@@ -2192,10 +2198,13 @@
                 if (userError) throw userError;
                 if (!authUser) throw new Error('No authenticated user');
 
-                // Look up in admins table — never auto-create
+                // Look up in admins table — never auto-create.
+                // Plain select (no embedded "schools(...)" join — that join
+                // depends on Supabase's FK schema cache and can silently
+                // return null / error and abort the whole login).
                 const { data: adminRow, error: adminError } = await _sb
                     .from('admins')
-                    .select('*, schools(name, school_code)')
+                    .select('*')
                     .eq('id', authUser.id)
                     .maybeSingle();
 
@@ -2203,8 +2212,23 @@
 
                 if (!adminRow) {
                     Toast.show('Not authorized for this Library System.', 'error');
-                    window.location.href = window.location.pathname;
                     return false;
+                }
+
+                // Fetch the school name separately. This is cosmetic only —
+                // it must NEVER be able to block or crash the login.
+                let schoolName = adminRow.school_name || 'School';
+                try {
+                    if (adminRow.school_id) {
+                        const { data: schoolRow } = await _sb
+                            .from('schools')
+                            .select('name, school_code')
+                            .eq('id', adminRow.school_id)
+                            .maybeSingle();
+                        if (schoolRow?.name) schoolName = schoolRow.name;
+                    }
+                } catch (schoolErr) {
+                    console.warn('Could not fetch school name (non-blocking):', schoolErr);
                 }
 
                 currentUser = {
@@ -2213,26 +2237,29 @@
                     full_name: adminRow.full_name || authUser.user_metadata?.full_name || authUser.email,
                     role: adminRow.role || 'admin',
                     school_id: adminRow.school_id,
-                    school_name: adminRow.schools?.name || adminRow.school_name || 'School',
+                    school_name: schoolName,
                     identityType: 'admin'
                 };
 
-                _applySchoolBranding(currentUser.school_name);
+                // Branding is cosmetic — never let a DOM hiccup here abort login.
+                try { _applySchoolBranding(currentUser.school_name); }
+                catch (brandErr) { console.warn('Branding skipped (non-blocking):', brandErr); }
+
                 // Clear stale localStorage activity cache so old logs from other sessions never show
                 localStorage.removeItem('lib_activity');
                 showApp();
                 setTimeout(() => updateSidebarUser(), 100);
                 loadAllData();
-                await DB.addActivity('Login', 'Admin ' + currentUser.full_name + ' logged in via SSO');
+                // Activity logging is best-effort — don't let it block the login.
+                DB.addActivity('Login', 'Admin ' + currentUser.full_name + ' logged in via SSO')
+                    .catch(e => console.warn('Activity log failed (non-blocking):', e));
                 Toast.show('Welcome, ' + currentUser.full_name + '!', 'success');
 
-                window.history.replaceState({}, document.title, window.location.pathname);
                 return true;
 
             } catch (e) {
                 console.error('SSO error:', e);
-                Toast.show('SSO login failed: ' + e.message, 'error');
-                window.location.href = window.location.pathname;
+                Toast.show('SSO login failed: ' + (e.message || 'Unknown error'), 'error');
                 return false;
             }
         }
@@ -2244,10 +2271,20 @@
             if (authH1) authH1.textContent = schoolName;
             const sidebarLogo = document.getElementById('sidebarSchoolName');
             if (sidebarLogo) {
-                // preserve the <span> child
-                const span = sidebarLogo.querySelector('span');
-                sidebarLogo.childNodes[0].textContent = schoolName;
-                if (!span) {
+                // Find an existing text node rather than assuming childNodes[0]
+                // is one — if the element's first child happens to be an
+                // element (e.g. an icon or the <span>), childNodes[0] is NOT
+                // a text node and .textContent on it overwrites that element's
+                // own content, or throws if it's missing entirely. That crash
+                // is what was silently aborting SSO before.
+                let textNode = Array.from(sidebarLogo.childNodes)
+                    .find(n => n.nodeType === Node.TEXT_NODE);
+                if (textNode) {
+                    textNode.textContent = schoolName;
+                } else {
+                    sidebarLogo.insertBefore(document.createTextNode(schoolName), sidebarLogo.firstChild);
+                }
+                if (!sidebarLogo.querySelector('span')) {
                     const s = document.createElement('span');
                     s.textContent = 'Library Management System';
                     sidebarLogo.appendChild(s);
