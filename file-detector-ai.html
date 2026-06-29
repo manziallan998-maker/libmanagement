@@ -679,7 +679,6 @@ async function insertBatch(payload) {
     return { ok: false, error: e.message, status: e.status };
   }
 }
-
 /* ──────────────────────────────────────────────────────────────────
    CONNECTION TEST
 ────────────────────────────────────────────────────────────────── */
@@ -709,15 +708,12 @@ async function pingSupabase(showToast = false) {
       return false;
     }
     sbConnected = true;
-    // Probe RPC only after identity is available (guard against pre-identity call)
-    if (IDENTITY) {
-      try {
-        await billanRpc('import_engine_table_exists', 'import_engine_table_exists', { p_table: 'import_engine_probe_table' });
-        rpcInstalled = true;
-      } catch(e) {
-        rpcInstalled = (e.status !== 404 && e.status !== undefined) ? rpcInstalled : false;
-        if (e.status === 404 || /could not find/i.test(String(e.message))) rpcInstalled = false;
-      }
+    // Probe uses the no-credential wrapper — safe to call before or after identity arrives
+    try {
+      await sbRpc('import_engine_probe', {});
+      rpcInstalled = true;
+    } catch(e) {
+      rpcInstalled = false;
     }
     document.getElementById('setupWarn').className = rpcInstalled === false ? 'setup-warn show' : 'setup-warn';
     badge.className = 'conn-badge connected';
@@ -735,6 +731,7 @@ async function pingSupabase(showToast = false) {
   }
 }
 // Do NOT auto-ping on load — wait for IDENTITY (onIdentityReceived calls pingSupabase)
+
 
 /* ══════════════════════════════════════════════════════════════════
    TYPE SYSTEM
