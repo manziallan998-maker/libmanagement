@@ -242,6 +242,38 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 .setup-warn{display:none;background:var(--red3);border:1px solid var(--red);color:var(--red);border-radius:var(--r);padding:14px 16px;font-size:12.5px;line-height:1.6;margin-bottom:1rem;}
 .setup-warn.show{display:block;}
 .setup-warn code{background:var(--bg4);padding:1px 6px;border-radius:3px;color:var(--white);font-family:var(--mono);}
+.identity-wait{display:none;background:var(--amber3);border:1px solid var(--amber);color:var(--amber);border-radius:var(--r);padding:14px 16px;font-size:12.5px;line-height:1.6;margin-bottom:1rem;align-items:center;gap:10px;}
+.identity-wait.show{display:flex;}
+.identity-badge{display:flex;align-items:center;gap:6px;background:var(--purple3);border:1px solid var(--purple);color:var(--purple);padding:4px 10px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--mono);}
+.upload-hero.locked{opacity:0.35;pointer-events:none;filter:grayscale(0.4);}
+/* New Column Approval Panel */
+.new-col-panel{background:var(--bg2);border:1.5px solid var(--blue);border-radius:var(--rl);padding:1.5rem;margin-top:1.5rem;animation:fadeUp 0.4s ease;}
+.new-col-panel-title{font-family:var(--display);font-size:1.1rem;color:var(--white);margin-bottom:0.3rem;}
+.new-col-panel-sub{font-size:12.5px;color:var(--text2);margin-bottom:1rem;}
+.new-col-list{display:flex;flex-direction:column;gap:8px;margin-bottom:1.25rem;max-height:260px;overflow-y:auto;}
+.new-col-item{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 14px;display:flex;align-items:flex-start;gap:12px;}
+.new-col-name{font-family:var(--mono);font-size:12px;color:var(--blue);font-weight:600;min-width:140px;}
+.new-col-type{font-family:var(--mono);font-size:11px;color:var(--text3);margin-top:2px;}
+.new-col-samples{font-size:11px;color:var(--text2);margin-top:3px;}
+.new-col-actions{display:flex;gap:10px;flex-wrap:wrap;}
+.btn-approve{background:var(--blue);color:#fff;border:none;padding:10px 22px;border-radius:8px;font-family:var(--sans);font-weight:700;font-size:13px;cursor:pointer;transition:all 0.2s;box-shadow:0 4px 18px rgba(59,130,246,0.35);}
+.btn-approve:hover{background:#60a5fa;transform:translateY(-1px);}
+.btn-deny{background:var(--bg4);border:1px solid var(--border2);color:var(--text2);padding:10px 22px;border-radius:8px;font-family:var(--sans);font-size:13px;cursor:pointer;transition:all 0.2s;}
+.btn-deny:hover{border-color:var(--amber);color:var(--amber);}
+/* Import History Panel */
+.history-panel{background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);overflow:hidden;margin-top:1.5rem;animation:fadeUp 0.4s ease;}
+.history-hdr{display:flex;align-items:center;gap:10px;padding:14px 18px;border-bottom:1px solid var(--border2);cursor:pointer;user-select:none;}
+.history-hdr:hover{background:var(--bg3);}
+.history-body{display:none;padding:1rem 1.25rem;}
+.history-body.open{display:block;}
+.hist-tbl{width:100%;border-collapse:collapse;font-size:12px;}
+.hist-tbl th{text-align:left;padding:7px 10px;color:var(--text3);font-weight:600;font-size:10px;letter-spacing:0.1em;text-transform:uppercase;border-bottom:1px solid var(--border2);}
+.hist-tbl td{padding:7px 10px;border-bottom:1px solid var(--border);color:var(--text2);font-family:var(--mono);font-size:11px;}
+.hist-tbl tr:hover td{background:var(--bg3);}
+.hist-action-ok{color:var(--green);}
+.hist-action-warn{color:var(--amber);}
+.hist-action-info{color:var(--blue);}
+.hist-empty{color:var(--text3);font-size:12px;padding:1rem 0;text-align:center;}
 @media(max-width:768px){
   .main{padding:1rem;}
   .upload-title{font-size:1.5rem;}
@@ -304,6 +336,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
     </div>
   </div>
   <div class="hdr-actions">
+    <div class="identity-badge" id="identityBadge" style="display:none"><span id="schoolNameBadge">—</span></div>
     <button class="conn-badge" id="connBadge" onclick="pingSupabase(true)" title="Click to test DB connection">
       <div class="status-pulse"></div>
       <span id="connTxt">Test DB</span>
@@ -318,6 +351,11 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 
 <div class="main">
 
+<div class="identity-wait" id="identityWait">
+  <div class="status-pulse" style="color:var(--amber)"></div>
+  <span>⏳ Waiting for Library System session… this tool must be loaded inside the BILLAN Library Management System.</span>
+</div>
+
 <div class="setup-warn" id="setupWarn">
   ⚠ <b>The dynamic-schema RPC functions weren't found</b> on this Supabase project (<code>import_engine_table_exists</code> etc).
   Tables can't be auto-created or auto-altered without them. Run <code>supabase_setup.sql</code> once in your
@@ -326,7 +364,7 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
 </div>
 
 <!-- UPLOAD ZONE -->
-<div id="uploadZone" class="upload-hero"
+<div id="uploadZone" class="upload-hero locked"
   onclick="handleZoneClick(event)"
   ondragover="event.preventDefault();this.classList.add('drag')"
   ondragleave="this.classList.remove('drag')"
@@ -476,6 +514,30 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
   <div class="q-card"><div class="q-grid" id="qGrid"></div></div>
 </div>
 
+<!-- NEW COLUMN APPROVAL PANEL -->
+<div id="newColApprovalPanel" style="display:none"></div>
+
+<!-- IMPORT HISTORY PANEL -->
+<div class="history-panel" id="historyPanel" style="display:none">
+  <div class="history-hdr" onclick="toggleHistoryPanel()">
+    <span style="font-size:16px">📜</span>
+    <span class="sec-title" style="font-size:1rem">Import History</span>
+    <span class="chip chip-bl" id="histChip" style="display:none"></span>
+    <span style="margin-left:auto;color:var(--text3);font-size:12px" id="histToggleArrow">▼ expand</span>
+  </div>
+  <div class="history-body" id="historyBody">
+    <div class="hist-empty" id="histEmpty">Loading history…</div>
+    <table class="hist-tbl" id="histTbl" style="display:none">
+      <thead>
+        <tr>
+          <th>Table</th><th>Action</th><th>Rows</th><th>Batch ID</th><th>When</th>
+        </tr>
+      </thead>
+      <tbody id="histBody"></tbody>
+    </table>
+  </div>
+</div>
+
 <div style="height:80px"></div>
 </div>
 
@@ -510,27 +572,49 @@ body::before{content:'';position:fixed;inset:0;background-image:url("data:image/
    (inserts, upserts, discovery reads) is plain PostgREST.
 ══════════════════════════════════════════════════════════════════ */
 
+/* ══════════════════════════════════════════════════════════════════
+   IDENTITY — this tool has no login of its own.
+   It receives identity from the parent Library Management System
+   via postMessage. Until IDENTITY is set, the upload zone stays locked.
+══════════════════════════════════════════════════════════════════ */
+let IDENTITY = null; // { identityType:'admin'|'staff', schoolCode, password, schoolId, schoolName }
+
+window.addEventListener('message', (event) => {
+  if (event.data?.type === 'BILLAN_IDENTITY') {
+    IDENTITY = event.data;
+    onIdentityReceived();
+  }
+});
+
+function onIdentityReceived() {
+  // Unlock upload zone
+  document.getElementById('uploadZone').classList.remove('locked');
+  document.getElementById('identityWait').classList.remove('show');
+  // Show school name in header
+  if (IDENTITY.schoolName) {
+    const badge = document.getElementById('identityBadge');
+    document.getElementById('schoolNameBadge').textContent = IDENTITY.schoolName;
+    badge.style.display = 'flex';
+  }
+  // Now safe to ping — needs identity for credentialed probe
+  pingSupabase(false);
+  // Show history panel if we have a schoolId
+  if (IDENTITY.schoolId) {
+    document.getElementById('historyPanel').style.display = 'block';
+    loadImportHistory();
+  }
+}
+
+// Show the waiting notice on load (before identity arrives)
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('identityWait').classList.add('show');
+});
+
 /* ──────────────────────────────────────────────────────────────────
    SUPABASE CONFIG
-   SB_ANON below is the PUBLISHABLE "anon" key (decode its JWT payload
-   yourself: role:"anon"). It is *designed* to be embedded in browser
-   code and is safe on GitHub Pages — Supabase enforces what it can do
-   via Row Level Security (RLS) policies and function grants on the
-   database side, not by hiding this key.
-
-   NEVER put a service_role key here, in this file, in any other
-   client-side file, or anywhere a browser can read it. service_role
-   bypasses RLS entirely; if it leaks, anyone can read/write/drop any
-   table in the project. The only places a service_role key may ever
-   live are: a server-side environment variable (Edge Function /
-   backend), or nowhere at all if you only use the SECURITY DEFINER
-   RPC pattern below (recommended — see supabase_setup.sql).
-
-   Replace these two values to point the importer at a different
-   Supabase project.
 ────────────────────────────────────────────────────────────────── */
 const SB_URL  = 'https://uvispwigefzhjvkqcxkm.supabase.co';
-const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA'; // role:"anon" — confirmed safe for client-side use
+const SB_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InV2aXNwd2lnZWZ6aGp2a3FjeGttIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA0OTIzNDYsImV4cCI6MjA5NjA2ODM0Nn0.wPN9uyEpKswUWcYZF1HPQZXCLSh5B0OheI1jBRgBEhA'; // role:"anon"
 
 function sbHeaders(extra = {}) {
   return {
@@ -557,19 +641,50 @@ async function sbRpc(fn, params) {
 }
 
 /* ──────────────────────────────────────────────────────────────────
+   IDENTITY-AWARE RPC DISPATCH
+   Staff path: passes p_school_code + p_password for every RPC.
+   Admin path: relies on RLS + auth.uid() — no credential params.
+────────────────────────────────────────────────────────────────── */
+async function billanRpc(staffFn, adminFn, params) {
+  if (!IDENTITY) throw new Error('No active session from the Library System.');
+  if (IDENTITY.identityType === 'admin') {
+    return sbRpc(adminFn, params); // RLS covers it; no credential params sent
+  }
+  return sbRpc(staffFn, { p_school_code: IDENTITY.schoolCode, p_password: IDENTITY.password, ...params });
+}
+
+/* ──────────────────────────────────────────────────────────────────
+   IDENTITY-AWARE ROW INSERT
+   Admin: direct PostgREST (RLS already scopes by auth.uid).
+   Staff: credentialed RPC (anon has zero grants on dynamic tables).
+   NEVER include school_id in the client-built payload — the DB layer
+   injects it from validated identity.
+────────────────────────────────────────────────────────────────── */
+async function insertBatch(payload) {
+  if (!IDENTITY) throw new Error('No active session.');
+  if (IDENTITY.identityType === 'admin') {
+    return postBatch(payload); // existing direct-REST function, unchanged
+  }
+  // Staff path — credentialed RPC insert
+  try {
+    const count = await sbRpc('import_engine_insert_rows', {
+      p_school_code: IDENTITY.schoolCode,
+      p_password: IDENTITY.password,
+      p_table: udm.tableName,
+      p_rows: payload,
+      p_import_batch: udm.importBatch
+    });
+    return { ok: true, count };
+  } catch(e) {
+    return { ok: false, error: e.message, status: e.status };
+  }
+}
+
+/* ──────────────────────────────────────────────────────────────────
    CONNECTION TEST
-   Hits a real table (public.ai_healthcheck, defined in
-   supabase_setup.sql) behind RLS instead of the bare /rest/v1/ root.
-   This proves: the URL/anon key pair is valid, AND PostgREST can
-   actually serve a SELECT under RLS with this key — which is a much
-   stronger signal than just getting a 200 from the API root. Then it
-   probes one of the import_engine RPCs (proves supabase_setup.sql has
-   been run). Both are required for full functionality; only the first
-   is required to import into a table that already has every column.
-   None of this ever touches a service_role-only endpoint.
 ────────────────────────────────────────────────────────────────── */
 let sbConnected = false;
-let rpcInstalled = null; // null = unknown, true/false once checked
+let rpcInstalled = null;
 
 async function pingSupabase(showToast = false) {
   const badge = document.getElementById('connBadge');
@@ -586,7 +701,7 @@ async function pingSupabase(showToast = false) {
         if (showToast) toast('⚠ Connected, but public.ai_healthcheck doesn\'t exist yet — run supabase_setup.sql in the SQL Editor first.', 'err');
       } else if (r.status === 401 || r.status === 403) {
         txt.textContent = 'Auth Error';
-        if (showToast) toast('❌ Anon key rejected (' + r.status + '). Double-check SB_URL/SB_ANON and that ai_healthcheck has an anon SELECT policy.', 'err');
+        if (showToast) toast('❌ Anon key rejected (' + r.status + '). Double-check SB_URL/SB_ANON.', 'err');
       } else {
         txt.textContent = 'DB Error ' + r.status;
         if (showToast) toast('❌ Could not reach Supabase (' + r.status + ')', 'err');
@@ -594,14 +709,15 @@ async function pingSupabase(showToast = false) {
       return false;
     }
     sbConnected = true;
-    // probe RPC presence with a harmless call — these are SECURITY
-    // DEFINER functions from supabase_setup.sql, never service_role calls
-    try {
-      await sbRpc('import_engine_table_exists', { p_table: 'import_engine_probe_table' });
-      rpcInstalled = true;
-    } catch(e) {
-      rpcInstalled = (e.status !== 404 && e.status !== undefined) ? rpcInstalled : false;
-      if (e.status === 404 || /could not find/i.test(String(e.message))) rpcInstalled = false;
+    // Probe RPC only after identity is available (guard against pre-identity call)
+    if (IDENTITY) {
+      try {
+        await billanRpc('import_engine_table_exists', 'import_engine_table_exists', { p_table: 'import_engine_probe_table' });
+        rpcInstalled = true;
+      } catch(e) {
+        rpcInstalled = (e.status !== 404 && e.status !== undefined) ? rpcInstalled : false;
+        if (e.status === 404 || /could not find/i.test(String(e.message))) rpcInstalled = false;
+      }
     }
     document.getElementById('setupWarn').className = rpcInstalled === false ? 'setup-warn show' : 'setup-warn';
     badge.className = 'conn-badge connected';
@@ -618,7 +734,7 @@ async function pingSupabase(showToast = false) {
     return false;
   }
 }
-pingSupabase(false);
+// Do NOT auto-ping on load — wait for IDENTITY (onIdentityReceived calls pingSupabase)
 
 /* ══════════════════════════════════════════════════════════════════
    TYPE SYSTEM
@@ -1253,14 +1369,17 @@ function onTableNameEdit(){
 }
 
 async function checkDatabase(){
+  if (!IDENTITY) { toast('❌ No session — open this tool from the Library Management System.', 'err'); return; }
   const banner=document.getElementById('tableCheckBanner');
   banner.className='conn-banner testing show';
   banner.innerHTML=`<div class="status-pulse"></div><span>Checking whether <code>${esc(udm.tableName)}</code> exists…</span>`;
   try{
-    const exists = await sbRpc('import_engine_table_exists', {p_table: udm.tableName});
+    // Table-exists and get-columns are credential-agnostic (same fn name both paths),
+    // but admin branch omits p_school_code/p_password via billanRpc
+    const exists = await billanRpc('import_engine_table_exists', 'import_engine_table_exists', { p_table: udm.tableName });
     udm.tableExists = exists;
     if(exists){
-      const cols = await sbRpc('import_engine_get_columns', {p_table: udm.tableName});
+      const cols = await billanRpc('import_engine_get_columns', 'import_engine_get_columns', { p_table: udm.tableName });
       udm.existingColumns = cols;
       matchColumns(udm.columns, cols);
       banner.className='conn-banner ok show';
@@ -1277,10 +1396,21 @@ async function checkDatabase(){
     banner.className='conn-banner fail show';
     banner.innerHTML=`<span>✗ Couldn't check: ${esc(e.message)}</span>`;
     toast('❌ '+e.message,'err');
+    return;
   }
   showMapping();
   showDdlPreview();
-  await finalizeNormalization();
+
+  // NEW-COLUMN APPROVAL FLOW — intercept before normalizing if new columns exist
+  const newCols = udm.columns.filter(c => c.action === 'new');
+  if (newCols.length > 0) {
+    renderNewColumnApproval(newCols);
+  } else {
+    // No new columns — go straight to normal import button flow
+    pendingColumnDecision = 'approved';
+    await finalizeNormalization();
+    proceedToImportButton();
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1347,6 +1477,134 @@ function updateMap(sel){
   showMapping(); showDdlPreview();
   finalizeNormalization();
   toast(`Remapped "${col.source}"`);
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   NEW-COLUMN APPROVAL WORKFLOW
+   Single combined Approve / Deny decision for all new columns.
+   No per-column controls — one batch decision covers everything.
+══════════════════════════════════════════════════════════════════ */
+let pendingColumnDecision = null; // 'approved' | 'denied' | null
+
+function renderNewColumnApproval(newCols) {
+  pendingColumnDecision = null;
+  // Disable the import button until decision is made
+  const importBtn = document.getElementById('importBtn');
+  importBtn.disabled = true;
+  importBtn.textContent = '⏳ Awaiting new-column decision…';
+
+  const panel = document.getElementById('newColApprovalPanel');
+  const colItems = newCols.map(c => {
+    const samples = (c.samples || []).slice(0, 3).map(v => esc(String(v).slice(0, 22))).join(', ') || '—';
+    return `<div class="new-col-item">
+      <div style="flex:1">
+        <div class="new-col-name">${esc(c.name)}</div>
+        <div class="new-col-type">SQL type: <span style="color:var(--orange)">${esc(c.sqlType)}</span> · inferred as <span style="color:var(--blue)">${esc(c.type)}</span></div>
+        <div class="new-col-samples">Samples: ${samples}</div>
+      </div>
+    </div>`;
+  }).join('');
+
+  panel.innerHTML = `<div class="new-col-panel">
+    <div class="new-col-panel-title">🆕 ${newCols.length} New Column${newCols.length>1?'s':''} Detected</div>
+    <div class="new-col-panel-sub">These columns don't exist yet in <code style="color:var(--orange);font-family:var(--mono)">${esc(udm.tableName)}</code>. Approve to add them to the database schema, or skip to import only the already-matched columns.</div>
+    <div class="new-col-list">${colItems}</div>
+    <div class="new-col-actions">
+      <button class="btn-approve" onclick="approveNewColumns()">✅ Add these columns and continue</button>
+      <button class="btn-deny" onclick="denyNewColumns()">⏭ Skip these columns and continue</button>
+    </div>
+  </div>`;
+  panel.style.display = 'block';
+  panel.scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+
+function approveNewColumns() {
+  pendingColumnDecision = 'approved';
+  document.getElementById('newColApprovalPanel').style.display = 'none';
+  finalizeNormalization().then(() => proceedToImportButton());
+}
+
+function denyNewColumns() {
+  // Mark every 'new' column as 'skip' — don't block the import, just drop these fields
+  udm.columns.filter(c => c.action === 'new').forEach(c => { c.action = 'skip'; });
+  pendingColumnDecision = 'denied';
+  document.getElementById('newColApprovalPanel').style.display = 'none';
+  showMapping(); showDdlPreview();
+  finalizeNormalization().then(() => proceedToImportButton());
+  toast('ℹ New columns skipped — importing existing matched columns only.');
+}
+
+function proceedToImportButton() {
+  const importBtn = document.getElementById('importBtn');
+  const sel = getSelRecords();
+  importBtn.disabled = sel.length === 0 || !udm.tableName || udm.tableExists === null;
+  importBtn.textContent = `🚀 Import ${sel.length} Records to Database`;
+}
+
+/* ══════════════════════════════════════════════════════════════════
+   IMPORT HISTORY / DATABASE BROWSER
+══════════════════════════════════════════════════════════════════ */
+let historyOpen = false;
+
+function toggleHistoryPanel() {
+  historyOpen = !historyOpen;
+  const body = document.getElementById('historyBody');
+  const arrow = document.getElementById('histToggleArrow');
+  body.className = historyOpen ? 'history-body open' : 'history-body';
+  arrow.textContent = historyOpen ? '▲ collapse' : '▼ expand';
+  if (historyOpen && IDENTITY?.schoolId) loadImportHistory();
+}
+
+async function loadImportHistory() {
+  if (!IDENTITY?.schoolId) return;
+  const emptyEl = document.getElementById('histEmpty');
+  const tbl = document.getElementById('histTbl');
+  emptyEl.textContent = 'Loading history…';
+  emptyEl.style.display = 'block';
+  tbl.style.display = 'none';
+  try {
+    const r = await fetch(
+      `${SB_URL}/rest/v1/import_log?school_id=eq.${encodeURIComponent(IDENTITY.schoolId)}&order=created_at.desc&limit=100`,
+      { headers: sbHeaders() }
+    );
+    if (!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    renderImportHistory(data || []);
+  } catch(e) {
+    emptyEl.textContent = 'Could not load import history: ' + e.message;
+  }
+}
+
+function renderImportHistory(rows) {
+  const emptyEl = document.getElementById('histEmpty');
+  const tbl = document.getElementById('histTbl');
+  const tbody = document.getElementById('histBody');
+  const chip = document.getElementById('histChip');
+  if (!rows.length) {
+    emptyEl.textContent = 'No import history yet for this school.';
+    emptyEl.style.display = 'block';
+    tbl.style.display = 'none';
+    chip.style.display = 'none';
+    return;
+  }
+  chip.textContent = rows.length + ' entries';
+  chip.style.display = '';
+  emptyEl.style.display = 'none';
+  tbl.style.display = 'table';
+  tbody.innerHTML = rows.map(row => {
+    const actionClass = row.action?.includes('insert') ? 'hist-action-ok'
+      : row.action?.includes('denied') ? 'hist-action-warn' : 'hist-action-info';
+    const when = row.created_at ? new Date(row.created_at).toLocaleString() : '—';
+    const batchId = row._import_batch || row.import_batch || '—';
+    const batchShort = typeof batchId === 'string' && batchId.length > 8 ? batchId.slice(0,8)+'…' : batchId;
+    return `<tr>
+      <td>${esc(row.table_name||'—')}</td>
+      <td class="${actionClass}">${esc(row.action||'—')}</td>
+      <td>${row.row_count ?? '—'}</td>
+      <td title="${esc(batchId)}">${esc(batchShort)}</td>
+      <td>${esc(when)}</td>
+    </tr>`;
+  }).join('');
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1575,8 +1833,16 @@ function updActBar(){
   const sel=getSelRecords();
   document.getElementById('actCount').textContent=`${sel.length} records selected`;
   const btn=document.getElementById('importBtn');
-  btn.textContent=`🚀 Import ${sel.length} Records to Database`;
-  btn.disabled = sel.length===0 || !udm.tableName || udm.tableExists===null;
+  // Block import until new-column decision has been made (if any new cols existed)
+  const decisionBlocking = pendingColumnDecision === null && udm && udm.tableExists !== null
+    && udm.columns.some(c => c.action === 'new');
+  if (decisionBlocking) {
+    btn.textContent='⏳ Awaiting new-column decision…';
+    btn.disabled = true;
+  } else {
+    btn.textContent=`🚀 Import ${sel.length} Records to Database`;
+    btn.disabled = sel.length===0 || !udm.tableName || udm.tableExists===null;
+  }
 }
 
 /* ══════════════════════════════════════════════════════════════════
@@ -1653,15 +1919,16 @@ async function showImportModal(){
 }
 
 async function ensureSchema(){
+  // Only process columns that are approved (action === 'new' and decision was approved)
   const newCols = udm.columns.filter(c=>c.action==='new').map(c=>({name:c.name, type:c.sqlType}));
   if(udm.tableExists===false){
     dbLog(`Creating table public.${udm.tableName} with ${newCols.length} column(s)…`,'info');
-    await sbRpc('import_engine_ensure_table', {p_table: udm.tableName, p_columns: newCols});
+    await billanRpc('import_engine_ensure_table', 'import_engine_ensure_table_admin', {p_table: udm.tableName, p_columns: newCols});
     dbLog(`✓ Table public.${udm.tableName} created`);
     udm.tableExists = true;
   } else if(newCols.length>0){
     dbLog(`Adding ${newCols.length} missing column(s) to public.${udm.tableName}…`,'info');
-    await sbRpc('import_engine_add_columns', {p_table: udm.tableName, p_columns: newCols});
+    await billanRpc('import_engine_add_columns', 'import_engine_add_columns_admin', {p_table: udm.tableName, p_columns: newCols});
     dbLog(`✓ Columns added`);
   } else {
     dbLog(`No schema changes needed — public.${udm.tableName} already has every required column.`,'info');
@@ -1711,6 +1978,7 @@ async function executeImport(){
 
   const cols = activeCols();
   const payload = records.map(r=>{
+    // NEVER include school_id — the DB layer injects it from validated identity
     const row={ _import_batch: udm.importBatch, _raw: udm.rawRows[r._rowIndex-1] ?? null };
     cols.forEach(c=>{ row[c.name]=r[c.name]; });
     return row;
@@ -1721,7 +1989,7 @@ async function executeImport(){
   for(let i=0;i<payload.length;i+=BATCH){
     const batch=payload.slice(i,i+BATCH);
     const batchNum=Math.ceil((i+1)/BATCH);
-    const result = await postBatch(batch);
+    const result = await insertBatch(batch);
     if(result.ok){
       done+=batch.length;
       dbLog(`✓ Batch ${batchNum} (${batch.length} rows) saved`);
@@ -1745,6 +2013,8 @@ async function executeImport(){
     toast(`🎉 ${done} records imported!`,'ok');
     setPill('Imported ✓','done');
     document.getElementById('dbBadge').style.display='flex';
+    // Refresh history panel after successful import
+    if (IDENTITY?.schoolId) loadImportHistory();
   } else {
     udm._failedRecords = failedRecords;
     dbLog(`⚠ Finished: ${done} saved, ${failedRecords.length} failed.`,'warn');
@@ -1795,6 +2065,7 @@ function dlFailedRows(){
 ══════════════════════════════════════════════════════════════════ */
 function startOver(){
   udm=null; filtRows=[]; selAll=false; sortK=null; sortD=1;
+  pendingColumnDecision = null;
   document.getElementById('uploadZone').style.display='block';
   document.getElementById('botPanel').className='bot-panel';
   ['datasetSection','mapSection','ddlSection','prevSection','qualSection'].forEach(id=>document.getElementById(id).style.display='none');
@@ -1803,6 +2074,8 @@ function startOver(){
   document.getElementById('startOverBtn').style.display='none';
   document.getElementById('dbBadge').style.display='none';
   document.getElementById('fileInput').value='';
+  document.getElementById('newColApprovalPanel').style.display='none';
+  document.getElementById('newColApprovalPanel').innerHTML='';
   const srch=document.getElementById('srch'); if(srch) srch.value='';
   closeModal(); clearChat();
   setPill('Ready','');
